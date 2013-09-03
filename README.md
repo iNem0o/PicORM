@@ -10,6 +10,15 @@ Features
 * hydrate collection from raw sql query
 * use PDO and prepared statements
 
+Install from composer
+-------------------
+```json
+{
+    "require": {
+        "picorm/picorm": "dev-master"
+    }
+}
+```
 
 Code sample
 -------------------
