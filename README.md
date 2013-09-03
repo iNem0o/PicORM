@@ -15,7 +15,7 @@ Code sample
 -------------------
 ### Load and configure PiCORM
 ```php
-require('PicORM/autoload.inc.php');
+require('src/autoload.inc.php');
 
 use PicORM\Entity;
 Entity::configure(array(
