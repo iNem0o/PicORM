@@ -37,7 +37,6 @@ abstract class Entity
 
     /**
      * Array to store OOP declaration status of each Entity subclass
-     * de chaque classe d'entité
      * @var array
      */
     private static $validationStatus = array();
@@ -105,7 +104,7 @@ abstract class Entity
 
             $subClassName = get_class(new static());
             if (static::$_tableName === null) throw new Exception($subClassName.'::$_tableName must be implemented');
-            if (static::$_primaryKey === null) throw new Exception($subClassName.'::$_clefPrimaire must be implemented');
+            if (static::$_primaryKey === null) throw new Exception($subClassName.'::$_primaryKey must be implemented');
             if (static::$_relations === null) throw new Exception($subClassName.'::$_relations must be implemented');
             if (static::$_tableFields === null) throw new Exception($subClassName.'::$_tableFields must be implemented');
 
