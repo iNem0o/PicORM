@@ -7,8 +7,8 @@ Features
 * Create Read Update Delete
 * Relation between entities
 * Database abstraction layer
-* hydrate collection from raw sql query
-* use PDO and prepared statements
+* Hydrate collection from raw sql query
+* Use PDO and prepared statements
 
 Install from composer
 -------------------
@@ -22,7 +22,7 @@ Install from composer
 
 Code sample
 -------------------
-### Load and configure PiCORM
+### Load and configure PicORM
 ```php
 require('src/autoload.inc.php');
 

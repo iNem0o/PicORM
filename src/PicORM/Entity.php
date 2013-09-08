@@ -185,7 +185,7 @@ abstract class Entity
 
         if (preg_match('/^(get|set|unset)(.+)/', $method, $matches) && array_key_exists(strtolower($matches[2]), static::$_relations)) {
             $toCall = '_'.$matches[1].'Relation';
-            // calling getRelation() or setRelation()
+            // calling getRelation() or setRelation() or unsetRelation()
             return $this->$toCall(static::$_relations[strtolower($matches[2])], $args);
         } else {
             throw new Exception("Fonction {$method} inconnue");
