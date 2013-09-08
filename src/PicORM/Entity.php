@@ -198,22 +198,23 @@ abstract class Entity
      * @param $callArgs
      * @return bool
      */
-    private function _unsetRelation(array $configRelation, $callArgs) {
+    private function _unsetRelation(array $configRelation, $callArgs)
+    {
         $isDeleted = false;
-        switch($configRelation['typeRelation']) {
+        switch ($configRelation['typeRelation']) {
             case self::MANY_TO_MANY:
-                if(!is_array($callArgs[0])) $callArgs[0] = array($callArgs[0]);
-                foreach($callArgs[0] as $oneRelationEntity) {
+                if (!is_array($callArgs[0])) $callArgs[0] = array($callArgs[0]);
+                foreach ($callArgs[0] as $oneRelationEntity) {
                     $query = static::$_dataSource->prepare("
                        DELETE
                        FROM `".$configRelation['relationTable']."`
                        WHERE `".$configRelation['sourceField']."` = ? AND `".$configRelation['targetField']."` = ?
                    ");
 
-                   $query->execute(array($this->{$configRelation['sourceField']},$oneRelationEntity -> {$configRelation['targetField']}));
+                    $query->execute(array($this->{$configRelation['sourceField']}, $oneRelationEntity->{$configRelation['targetField']}));
                 }
                 $isDeleted = true;
-            break;
+                break;
         }
         return $isDeleted;
     }
@@ -233,24 +234,24 @@ abstract class Entity
                 if ($callArgs[0] instanceof $configRelation['classRelation']) {
                     if ($callArgs[0]->isNew()) $callArgs[0]->save();
                     $this->{$configRelation['sourceField']} = $callArgs[0]->{$configRelation['targetField']};
-                    foreach($configRelation['autoGetFields'] as $oneField) {
+                    foreach ($configRelation['autoGetFields'] as $oneField) {
                         $this->{$oneField} = $callArgs[0]->{$oneField};
                     }
                     $retour = true;
                 }
                 break;
             case self::ONE_TO_MANY:
-                if(is_array($callArgs[0])) {
-                    foreach($callArgs[0] as $oneRelationEntity) {
-                        $oneRelationEntity -> {$configRelation['targetField']}= $this->{$configRelation['sourceField']};
-                        $oneRelationEntity -> save();
+                if (is_array($callArgs[0])) {
+                    foreach ($callArgs[0] as $oneRelationEntity) {
+                        $oneRelationEntity->{$configRelation['targetField']} = $this->{$configRelation['sourceField']};
+                        $oneRelationEntity->save();
                     }
                 }
-            break;
+                break;
             case self::MANY_TO_MANY:
-                if(!is_array($callArgs[0])) $callArgs[0] = array($callArgs[0]);
-                foreach($callArgs[0] as $oneRelationEntity) {
-                    if($oneRelationEntity->isNew()) $oneRelationEntity -> save();
+                if (!is_array($callArgs[0])) $callArgs[0] = array($callArgs[0]);
+                foreach ($callArgs[0] as $oneRelationEntity) {
+                    if ($oneRelationEntity->isNew()) $oneRelationEntity->save();
 
                     // test if relation already exists
                     $query = static::$_dataSource->prepare("
@@ -259,23 +260,23 @@ abstract class Entity
                         WHERE `".$configRelation['sourceField']."` = ? AND `".$configRelation['targetField']."` = ?
                     ");
 
-                    $query->execute(array($this->{$configRelation['sourceField']},$oneRelationEntity -> {$configRelation['targetField']}));
+                    $query->execute(array($this->{$configRelation['sourceField']}, $oneRelationEntity->{$configRelation['targetField']}));
                     $errorcode = $query->errorInfo();
                     if ($errorcode[0] != "00000") throw new Exception($errorcode[2]);
 
                     $res = $query->fetch(\PDO::FETCH_ASSOC);
-                    if($res['nb'] == 0) {
+                    if ($res['nb'] == 0) {
                         // create link in relation table
                         $query = static::$_dataSource->prepare("
                             INSERT INTO `".$configRelation['relationTable']."` (`".$configRelation['sourceField']."` ,`".$configRelation['targetField']."`)
                             VALUES (?, ?);
                         ");
-                        $query->execute(array($this->{$configRelation['sourceField']},$oneRelationEntity -> {$configRelation['targetField']}));
+                        $query->execute(array($this->{$configRelation['sourceField']}, $oneRelationEntity->{$configRelation['targetField']}));
                         $errorcode = $query->errorInfo();
                         if ($errorcode[0] != "00000") throw new Exception($errorcode[2]);
                     }
                 }
-            break;
+                break;
         }
 
         return $retour;
@@ -315,16 +316,16 @@ abstract class Entity
                     array($configRelation['targetField'] => $this->{$configRelation['sourceField']})
                 );
                 $relationValue = $classRelation::find($where, $order, $limitStart, $limitEnd);
-            break;
+                break;
             case self::MANY_TO_MANY:
                 $classRelation = $configRelation['classRelation'];
 
                 $joinStr = $fieldsStr = '';
 
                 $joinData = $classRelation::getOneToOneRelationMysqlJoinData('t');
-                if(count($joinData['joinFields'])>0) {
+                if (count($joinData['joinFields']) > 0) {
                     $joinStr = $joinData['joinStr'];
-                    $fieldsStr = ",".implode(',',$joinData['joinFields']);
+                    $fieldsStr = ",".implode(',', $joinData['joinFields']);
                 }
 
                 $req = "
@@ -336,8 +337,8 @@ abstract class Entity
                     WHERE `".$configRelation['relationTable']."`.".$configRelation['sourceField']." = ?
                 ";
 
-                $relationValue = $classRelation::findFromQuery($req,array($this->{$configRelation['sourceField']}));
-            break;
+                $relationValue = $classRelation::findFromQuery($req, array($this->{$configRelation['sourceField']}));
+                break;
         }
 
         return $relationValue;
@@ -405,7 +406,8 @@ abstract class Entity
      * @param string $aliasRelation
      * @throws Exception
      */
-    protected static function addRelationManyToMany($sourceField, $classRelation, $targetField, $relationTable, $aliasRelation = '') {
+    protected static function addRelationManyToMany($sourceField, $classRelation, $targetField, $relationTable, $aliasRelation = '')
+    {
         if (!class_exists($classRelation) || !new $classRelation() instanceof Entity)
             throw new Exception("Class ".$classRelation." doesnt exists or is not subclass of PicORM");
 
@@ -517,10 +519,11 @@ abstract class Entity
      * @param array $order              - associative array ex:array('libMarque'=>'ASC')
      * @param int $limitStart           - int
      * @param int $limitEnd             - int
+     * @param int $pdoFetchMode         - PDO Fetch Mode (default : \PDO::FETCH_ASSOC)
      * @return array
      * @throws Exception
      */
-    protected static function select($fields = array('*'), $where = array(), $order = array(), $limitStart = null, $limitEnd = null)
+    public static function select($fields = array('*'), $where = array(), $order = array(), $limitStart = null, $limitEnd = null, $pdoFetchMode = null)
     {
         // validate entity PHP structure if necessary before using it
         static::_validateEntity();
@@ -592,9 +595,9 @@ abstract class Entity
         // check one to one relation with autogetFields
         // and append necessary fields to select
         $joinData = static::getOneToOneRelationMysqlJoinData();
-        if(count($joinData['joinFields'])>0) {
+        if (count($joinData['joinFields']) > 0) {
             $joinStr = $joinData['joinStr'];
-            $fields = array_merge($fields,$joinData['joinFields']);
+            $fields = array_merge($fields, $joinData['joinFields']);
         }
 
         // be sure that "*" is prefixed with entity table name
@@ -606,12 +609,12 @@ abstract class Entity
         }
 
         $mysqlQuery = "
-			SELECT ".implode(",", $fields)."
-			FROM ".self::formatTableNameMySQL()."
-			$joinStr
-			$whereStr
-			$orderStr
-			$limitStr";
+   			SELECT ".implode(",", $fields)."
+   			FROM ".self::formatTableNameMySQL()."
+   			$joinStr
+   			$whereStr
+   			$orderStr
+   			$limitStr";
 
         $query = static::$_dataSource->prepare($mysqlQuery);
         $query->execute($sqlParams);
@@ -620,7 +623,10 @@ abstract class Entity
         $errorcode = $query->errorInfo();
         if ($errorcode[0] != "00000") throw new Exception($errorcode[2]);
 
-        return $query->fetchAll(\PDO::FETCH_ASSOC);
+        if ($pdoFetchMode === null) {
+            $pdoFetchMode = \PDO::FETCH_ASSOC;
+        }
+        return $query->fetchAll($pdoFetchMode);
     }
 
     /**
@@ -628,10 +634,11 @@ abstract class Entity
      * @param string $tableAlias
      * @return array
      */
-    protected static function getOneToOneRelationMysqlJoinData($tableAlias = '') {
+    protected static function getOneToOneRelationMysqlJoinData($tableAlias = '')
+    {
 
         // validate entity PHP structure if necessary before using it
-            static::_validateEntity();
+        static::_validateEntity();
 
         $joinData = array(
             'joinStr' => '',
@@ -642,7 +649,7 @@ abstract class Entity
         foreach (static::$_relations as $uneRelation) {
             if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && count($uneRelation['autoGetFields']) > 0) {
                 // add autoget field to select
-                foreach($uneRelation['autoGetFields'] as &$oneField) $oneField = 'rel'.$nbRelation.".".$oneField;
+                foreach ($uneRelation['autoGetFields'] as &$oneField) $oneField = 'rel'.$nbRelation.".".$oneField;
                 $joinData['joinFields'] = array_merge($joinData['joinFields'], $uneRelation['autoGetFields']);
 
                 // create join for relation
