@@ -345,6 +345,21 @@ abstract class Entity
     }
 
     /**
+     * Format classname without namespace to store a relation name
+     * @param $fullClassName
+     * @return string
+     */
+    protected static function formatClassnameToRelationName($fullClassName) {
+
+        if(strpos($fullClassName,'\\') !== false) {
+            $fullClassName = explode('\\',$fullClassName);
+            $fullClassName = array_pop($fullClassName);
+        }
+
+        return strtolower($fullClassName);
+    }
+
+    /**
      * Add a OneToOne relation
      * @param $sourceField             - entity source field
      * @param $classRelation           - relation entity name
@@ -361,10 +376,10 @@ abstract class Entity
 
         if (!is_array($autoGetFields) && is_string($autoGetFields)) $autoGetFields = array($autoGetFields);
 
-        // check for idRelation override with aliasRelation
-        $idRelation = !empty($aliasRelation) ? $aliasRelation : $classRelation;
+        $idRelation = self :: formatClassnameToRelationName($classRelation);
+        if(!empty($aliasRelation)) $idRelation = $aliasRelation;
 
-        static::$_relations[strtolower($idRelation)] = array(
+        static::$_relations[$idRelation] = array(
             'typeRelation' => self::ONE_TO_ONE,
             'classRelation' => $classRelation,
             'sourceField' => $sourceField,
@@ -386,8 +401,8 @@ abstract class Entity
         if (!class_exists($classRelation) || !new $classRelation() instanceof Entity)
             throw new Exception("Class ".$classRelation." doesnt exists or is not subclass of PicORM");
 
-        $idRelation = !empty($aliasRelation) ? $aliasRelation : $classRelation;
-        $idRelation = strtolower($idRelation);
+        $idRelation = self :: formatClassnameToRelationName($classRelation);
+        if(!empty($aliasRelation)) $idRelation = $aliasRelation;
 
         static::$_relations[$idRelation] = array(
             'typeRelation' => self::ONE_TO_MANY,
@@ -411,8 +426,8 @@ abstract class Entity
         if (!class_exists($classRelation) || !new $classRelation() instanceof Entity)
             throw new Exception("Class ".$classRelation." doesnt exists or is not subclass of PicORM");
 
-        $idRelation = !empty($aliasRelation) ? $aliasRelation : $classRelation;
-        $idRelation = strtolower($idRelation);
+        $idRelation = self :: formatClassnameToRelationName($classRelation);
+        if(!empty($aliasRelation)) $idRelation = $aliasRelation;
 
         static::$_relations[$idRelation] = array(
             'typeRelation' => self::MANY_TO_MANY,
