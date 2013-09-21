@@ -807,7 +807,9 @@ abstract class Entity
 
         $this->_isNew = false;
 
-        $this->{static::$_primaryKey} = static::$_dataSource->lastInsertId();
+        // grab the last insert ID if empty PK (auto_increment)
+        if(empty($this->{static::$_primaryKey}))
+            $this->{static::$_primaryKey} = static::$_dataSource->lastInsertId();
 
         return true;
     }
