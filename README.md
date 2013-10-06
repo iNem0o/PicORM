@@ -15,7 +15,7 @@ Install from composer
 ```json
 {
     "require": {
-        "picorm/picorm": "0.0.1"
+        "picorm/picorm": "0.0.2"
     }
 }
 ```
