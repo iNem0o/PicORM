@@ -167,4 +167,4 @@ Changelog
 ---------
 #### 0.0.1 - initial release
 #### 0.0.2 - add namespace support and pdo fetch mode selection
-		   - add transaction support
+		     add transaction support
