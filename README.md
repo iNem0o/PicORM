@@ -165,6 +165,10 @@ Entity::configure(array(
 
 Changelog
 ---------
-#### 0.0.1 - initial release
-#### 0.0.2 - add namespace support and pdo fetch mode selection
-		     add transaction support
+#### 0.0.1
+- initial release
+
+#### 0.0.2
+- bugfixes
+- add namespace support and pdo fetch mode selection
+- add transaction support
