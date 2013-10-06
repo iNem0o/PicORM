@@ -818,6 +818,7 @@ abstract class Entity
      * Initiates a transaction
      *
      * @return boolean
+     * @throw \PicORM\Exception
      */
     public static function begin() {
         if(!$result = static::$_dataSource->beginTransaction()) {
