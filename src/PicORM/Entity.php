@@ -788,7 +788,7 @@ abstract class Entity
             $champs .= "`".$unChamp."`,";
 
             if (is_array($this->$unChamp) && isset($this->{$unChamp}[0])) {
-                $params .= ','.$this->{$unChamp}[0];
+                $params .= $this->{$unChamp}[0].',';
             } else {
                 $params .= '?,';
                 $paramsValues[] = $this->$unChamp;
@@ -812,5 +812,43 @@ abstract class Entity
             $this->{static::$_primaryKey} = static::$_dataSource->lastInsertId();
 
         return true;
+    }
+	
+	/**
+     * Initiates a transaction
+     *
+     * @return boolean
+     */
+    public static function begin() {
+        if(!$result = static::$_dataSource->beginTransaction()) {
+            throw new Exception("Transaction could not begin!");
+        }
+        return $result;
+    }
+
+    /**
+     * Rolls back a transaction
+     *
+     * @return boolean
+     */
+    public static function rollback() {
+        return static::$_dataSource->rollBack();
+    }
+
+    /**
+     * Commits a transaction
+     *
+     * @return boolean
+     */
+    public static function commit() {
+        return static::$_dataSource->commit();
+    }
+
+    /**
+     * Return PDO instance
+     * @return \PDO
+     */
+    public static function getDataSource() {
+        return static::$_dataSource;
     }
 }
