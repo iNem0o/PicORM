@@ -1,6 +1,10 @@
 PicORM
 ======
-PicORM is a lightweight PHP ORM
+PicORM is a lightweight PHP ORM.
+
+======
+PicORM is currently in Alpha stage, that's means that PicORM is in active development and should NOT be considered stable.
+======
 
 Features
 --------
@@ -9,6 +13,13 @@ Features
 * Database abstraction layer
 * Hydrate collection from raw sql query
 * Use PDO and prepared statements
+
+Roadmap 0.0.3
+--------
+* MySQL refactoring
+* QueryBuilder
+* EntityCollection with lazyloading and update / delete method
+
 
 Install from composer
 -------------------
