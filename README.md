@@ -3,7 +3,8 @@ PicORM
 PicORM is a lightweight PHP ORM.
 
 --------
-PicORM is currently in Alpha stage, that's means that PicORM is in active development and should NOT be considered stable.
+PicORM is currently in Alpha stage.
+that's means that PicORM is in active development and should NOT be considered stable.
 --------
 
 Features
