@@ -42,21 +42,6 @@ abstract class Entity
     private static $validationStatus = array();
 
     /**
-     * PicORM Global or Entity specific Configuration
-     * @var array
-     */
-    protected static $_configuration = array();
-
-    /**
-     * Default PicORM configuration
-     * @var array
-     */
-    protected static $_defaultConfiguration = array(
-        'cache' => false, // !!TODO!!
-        'datasource' => null
-    );
-
-    /**
      * Datasource instance
      * @var \PDO
      */
@@ -94,41 +79,27 @@ abstract class Entity
     }
 
     /**
-     * Validate if this entity is correcty implemented
+     * Validate if this entity is correctly implemented
      * @throws Exception
      */
     protected static function _validateEntity()
     {
         // assure that check is only did once
-        if (!isset(self::$validationStatus[static::$_databaseName.static::$_tableName])) {
+        if (!isset(self::$validationStatus[static::$_databaseName . static::$_tableName])) {
 
             $subClassName = get_class(new static());
-            if (static::$_tableName === null) throw new Exception($subClassName.'::$_tableName must be implemented');
-            if (static::$_primaryKey === null) throw new Exception($subClassName.'::$_primaryKey must be implemented');
-            if (static::$_relations === null) throw new Exception($subClassName.'::$_relations must be implemented');
-            if (static::$_tableFields === null) throw new Exception($subClassName.'::$_tableFields must be implemented');
+            if (static::$_tableName === null) throw new Exception($subClassName . '::$_tableName must be implemented');
+            if (static::$_primaryKey === null) throw new Exception($subClassName . '::$_primaryKey must be implemented');
+            if (static::$_relations === null) throw new Exception($subClassName . '::$_relations must be implemented');
+            if (static::$_tableFields === null) throw new Exception($subClassName . '::$_tableFields must be implemented');
 
             // entity OOP structure is OK to declare relationship
             static::defineRelations();
 
-            self::$validationStatus[static::$_databaseName.static::$_tableName] = true;
+            self::$validationStatus[static::$_databaseName . static::$_tableName] = true;
         }
     }
 
-    /**
-     * Set PicORM or Entity configuration
-     * @param array $configuration
-     */
-    final public static function configure(array $configuration)
-    {
-        // overide with default configuration if not present
-        $configuration += static::$_defaultConfiguration;
-
-        if (isset($configuration['datasource']) && $configuration['datasource'] instanceof \PDO)
-            static::$_dataSource = $configuration['datasource'];
-
-        static::$_configuration = $configuration;
-    }
 
     /**
      * Format database name to using it in SQL query
@@ -136,7 +107,7 @@ abstract class Entity
      */
     public static function formatDatabaseNameMySQL()
     {
-        return !empty(static::$_databaseName) ? "`".static::$_databaseName."`." : '';
+        return !empty(static::$_databaseName) ? "`" . static::$_databaseName . "`." : '';
     }
 
     /**
@@ -145,7 +116,16 @@ abstract class Entity
      */
     public static function formatTableNameMySQL()
     {
-        return self::formatDatabaseNameMySQL()."`".static::$_tableName."`";
+        return self::formatDatabaseNameMySQL() . "`" . static::$_tableName . "`";
+    }
+
+    /**
+     * Return primary key field name
+     * @return string
+     */
+    public static function getPrimaryKeyFieldName()
+    {
+        return static::$_primaryKey;
     }
 
     /**
@@ -165,11 +145,11 @@ abstract class Entity
      */
     public function __toJson()
     {
-        $retour = array(static::$_primaryKey => $this->{static::$_primaryKey});
+        $jsonData = array(static::$_primaryKey => $this->{static::$_primaryKey});
         foreach (static::$_tableFields as $unChamp) {
-            $retour[$unChamp] = $this->{$unChamp};
+            $jsonData[$unChamp] = $this->{$unChamp};
         }
-        return json_encode($retour);
+        return json_encode($jsonData);
     }
 
     /**
@@ -184,11 +164,11 @@ abstract class Entity
         static::_validateEntity();
 
         if (preg_match('/^(get|set|unset)(.+)/', $method, $matches) && array_key_exists(strtolower($matches[2]), static::$_relations)) {
-            $toCall = '_'.$matches[1].'Relation';
+            $toCall = '_' . $matches[1] . 'Relation';
             // calling getRelation() or setRelation() or unsetRelation()
             return $this->$toCall(static::$_relations[strtolower($matches[2])], $args);
         } else {
-            throw new Exception("Fonction {$method} inconnue");
+            throw new Exception("unknown function {$method}");
         }
     }
 
@@ -205,11 +185,12 @@ abstract class Entity
             case self::MANY_TO_MANY:
                 if (!is_array($callArgs[0])) $callArgs[0] = array($callArgs[0]);
                 foreach ($callArgs[0] as $oneRelationEntity) {
-                    $query = static::$_dataSource->prepare("
-                       DELETE
-                       FROM `".$configRelation['relationTable']."`
-                       WHERE `".$configRelation['sourceField']."` = ? AND `".$configRelation['targetField']."` = ?
-                   ");
+                    $query = new InternalQueryHelper();
+                    $query->delete($configRelation['relationTable'])
+                        ->where($configRelation['sourceField'], '=', '?')
+                        ->where($configRelation['targetField'], '=', '?');
+
+                    $query = static::$_dataSource->prepare($query->buildQuery());
 
                     $query->execute(array($this->{$configRelation['sourceField']}, $oneRelationEntity->{$configRelation['targetField']}));
                 }
@@ -228,7 +209,7 @@ abstract class Entity
      */
     private function _setRelation(array $configRelation, $callArgs)
     {
-        $retour = false;
+        $isSaved = false;
         switch ($configRelation['typeRelation']) {
             case self::ONE_TO_ONE:
                 if ($callArgs[0] instanceof $configRelation['classRelation']) {
@@ -237,7 +218,7 @@ abstract class Entity
                     foreach ($configRelation['autoGetFields'] as $oneField) {
                         $this->{$oneField} = $callArgs[0]->{$oneField};
                     }
-                    $retour = true;
+                    $isSaved = true;
                 }
                 break;
             case self::ONE_TO_MANY:
@@ -246,40 +227,44 @@ abstract class Entity
                         $oneRelationEntity->{$configRelation['targetField']} = $this->{$configRelation['sourceField']};
                         $oneRelationEntity->save();
                     }
+                    $isSaved = true;
                 }
                 break;
             case self::MANY_TO_MANY:
                 if (!is_array($callArgs[0])) $callArgs[0] = array($callArgs[0]);
+                $testQueryHelper = new InternalQueryHelper();
+                $testQueryHelper->select('count(*) as nb')->from("`" . $configRelation['relationTable'] . "`")
+                    ->where("`" . $configRelation['sourceField'] . "`", '=', '?')
+                    ->where("`" . $configRelation['targetField'] . "`", '=', '?');
+                $testQuery = static::$_dataSource->prepare($testQueryHelper->buildQuery());
+
+                $insertQuery = new InternalQueryHelper();
+                $insertQuery->insertInto("`" . $configRelation['relationTable'] . "`")
+                    ->values($configRelation['sourceField'], "?")
+                    ->values($configRelation['targetField'], "?");
+                $insertQuery = static::$_dataSource->prepare($insertQuery->buildQuery());
+
                 foreach ($callArgs[0] as $oneRelationEntity) {
                     if ($oneRelationEntity->isNew()) $oneRelationEntity->save();
 
                     // test if relation already exists
-                    $query = static::$_dataSource->prepare("
-                        SELECT count(*) as nb
-                        FROM `".$configRelation['relationTable']."`
-                        WHERE `".$configRelation['sourceField']."` = ? AND `".$configRelation['targetField']."` = ?
-                    ");
-
-                    $query->execute(array($this->{$configRelation['sourceField']}, $oneRelationEntity->{$configRelation['targetField']}));
-                    $errorcode = $query->errorInfo();
+                    $testQuery->execute(array($this->{$configRelation['sourceField']}, $oneRelationEntity->{$configRelation['targetField']}));
+                    $errorcode = $testQuery->errorInfo();
                     if ($errorcode[0] != "00000") throw new Exception($errorcode[2]);
-
-                    $res = $query->fetch(\PDO::FETCH_ASSOC);
-                    if ($res['nb'] == 0) {
+                    $testResult = $testQuery->fetch(\PDO::FETCH_ASSOC);
+                    if ($testResult['nb'] == 0) {
                         // create link in relation table
-                        $query = static::$_dataSource->prepare("
-                            INSERT INTO `".$configRelation['relationTable']."` (`".$configRelation['sourceField']."` ,`".$configRelation['targetField']."`)
-                            VALUES (?, ?);
-                        ");
-                        $query->execute(array($this->{$configRelation['sourceField']}, $oneRelationEntity->{$configRelation['targetField']}));
-                        $errorcode = $query->errorInfo();
+                        $insertQuery->execute(array($this->{$configRelation['sourceField']}, $oneRelationEntity->{$configRelation['targetField']}));
+                        $errorcode = $insertQuery->errorInfo();
                         if ($errorcode[0] != "00000") throw new Exception($errorcode[2]);
+
+                        $isSaved = true;
                     }
                 }
                 break;
         }
 
-        return $retour;
+        return $isSaved;
     }
 
     /**
@@ -320,24 +305,29 @@ abstract class Entity
             case self::MANY_TO_MANY:
                 $classRelation = $configRelation['classRelation'];
 
-                $joinStr = $fieldsStr = '';
+                $selectRelations = new InternalQueryHelper();
+                $selectRelations
+                    ->select("t.*")
+                    ->from($classRelation::formatTableNameMySQL(), 't')
+                    ->innerJoin($configRelation['relationTable'], $configRelation['relationTable'] . "." . $configRelation['targetField'] . " = t." . $configRelation['targetField']);
 
-                $joinData = $classRelation::getOneToOneRelationMysqlJoinData('t');
-                if (count($joinData['joinFields']) > 0) {
-                    $joinStr = $joinData['joinStr'];
-                    $fieldsStr = ",".implode(',', $joinData['joinFields']);
+                // check one to one relation with auto get fields
+                // and append necessary fields to select
+                $nbRelation = 0;
+                foreach ($classRelation::$_relations as $uneRelation) {
+                    if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && count($uneRelation['autoGetFields']) > 0) {
+                        // add auto get fields to select
+                        foreach ($uneRelation['autoGetFields'] as &$oneField) $oneField = 'rel' . $nbRelation . "." . $oneField;
+                        $selectRelations->select($uneRelation['autoGetFields']);
+
+                        $selectRelations->leftJoin($uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
+                            'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $classRelation::formatTableNameMySQL() . '.`' . $uneRelation['sourceField'] . '`');
+                        $nbRelation++;
+                    }
                 }
+                $selectRelations->where("`" . $configRelation['relationTable'] . "`." . $configRelation['sourceField'], '=', '?');
 
-                $req = "
-                    SELECT t.* $fieldsStr
-                    FROM ".$classRelation::formatTableNameMySQL()." t
-                    INNER JOIN ".$configRelation['relationTable']."
-                    ON ".$configRelation['relationTable'].".".$configRelation['targetField']." = t.".$configRelation['targetField']."
-                    $joinStr
-                    WHERE `".$configRelation['relationTable']."`.".$configRelation['sourceField']." = ?
-                ";
-
-                $relationValue = $classRelation::findFromQuery($req, array($this->{$configRelation['sourceField']}));
+                $relationValue = $classRelation::findFromQuery($selectRelations->buildQuery(), array($this->{$configRelation['sourceField']}));
                 break;
         }
 
@@ -345,14 +335,15 @@ abstract class Entity
     }
 
     /**
-     * Format classname without namespace to store a relation name
+     * Format class name without namespace to store a relation name
      * @param $fullClassName
      * @return string
      */
-    protected static function formatClassnameToRelationName($fullClassName) {
+    protected static function formatClassnameToRelationName($fullClassName)
+    {
 
-        if(strpos($fullClassName,'\\') !== false) {
-            $fullClassName = explode('\\',$fullClassName);
+        if (strpos($fullClassName, '\\') !== false) {
+            $fullClassName = explode('\\', $fullClassName);
             $fullClassName = array_pop($fullClassName);
         }
 
@@ -361,23 +352,23 @@ abstract class Entity
 
     /**
      * Add a OneToOne relation
-     * @param $sourceField             - entity source field
-     * @param $classRelation           - relation entity name
-     * @param $targetField             - related entity target field
-     * @param array $autoGetFields     - field to autoget from relation when loading entity
-     * @param string $aliasRelation    - override relation autonaming with className with an alias
+     * @param $sourceField - entity source field
+     * @param $classRelation - relation entity name
+     * @param $targetField - related entity target field
+     * @param array $autoGetFields - field to auto get from relation when loading entity
+     * @param string $aliasRelation - override relation auto naming with className with an alias
      *                                    (ex : for reflexive relation)
      * @throws Exception
      */
     protected static function addRelationOneToOne($sourceField, $classRelation, $targetField, $autoGetFields = array(), $aliasRelation = '')
     {
         if (!class_exists($classRelation) || !new $classRelation() instanceof Entity)
-            throw new Exception("Class ".$classRelation." doesnt exists or is not subclass of PicORM");
+            throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of \PicORM\Entity");
 
         if (!is_array($autoGetFields) && is_string($autoGetFields)) $autoGetFields = array($autoGetFields);
 
         $idRelation = self :: formatClassnameToRelationName($classRelation);
-        if(!empty($aliasRelation)) $idRelation = $aliasRelation;
+        if (!empty($aliasRelation)) $idRelation = $aliasRelation;
 
         static::$_relations[$idRelation] = array(
             'typeRelation' => self::ONE_TO_ONE,
@@ -399,10 +390,10 @@ abstract class Entity
     protected static function addRelationOneToMany($sourceField, $classRelation, $targetField, $aliasRelation = '')
     {
         if (!class_exists($classRelation) || !new $classRelation() instanceof Entity)
-            throw new Exception("Class ".$classRelation." doesnt exists or is not subclass of PicORM");
+            throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of PicORM\Entity");
 
         $idRelation = self :: formatClassnameToRelationName($classRelation);
-        if(!empty($aliasRelation)) $idRelation = $aliasRelation;
+        if (!empty($aliasRelation)) $idRelation = $aliasRelation;
 
         static::$_relations[$idRelation] = array(
             'typeRelation' => self::ONE_TO_MANY,
@@ -424,10 +415,10 @@ abstract class Entity
     protected static function addRelationManyToMany($sourceField, $classRelation, $targetField, $relationTable, $aliasRelation = '')
     {
         if (!class_exists($classRelation) || !new $classRelation() instanceof Entity)
-            throw new Exception("Class ".$classRelation." doesnt exists or is not subclass of PicORM");
+            throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of PicORM\Entity");
 
         $idRelation = self :: formatClassnameToRelationName($classRelation);
-        if(!empty($aliasRelation)) $idRelation = $aliasRelation;
+        if (!empty($aliasRelation)) $idRelation = $aliasRelation;
 
         static::$_relations[$idRelation] = array(
             'typeRelation' => self::MANY_TO_MANY,
@@ -436,29 +427,6 @@ abstract class Entity
             'targetField' => $targetField,
             'relationTable' => $relationTable,
         );
-    }
-
-    /**
-     * Return entity collection fetched from database with criteria
-     * @param array $where        - associative array ex:
-     *            simple criteria        array('idMarque' => 1)
-     *            custom operator        array('idMarque' => array('operator' => '<=','value' => ''))
-     *            raw SQL                array('idMarque' => array('IN (5,6,4)'))
-     * @param array $order        - associative array ex:array('libMarque'=>'ASC')
-     * @param int $limitStart     - int
-     * @param int $limitEnd       - int
-     * @return static[]
-     */
-    public static function find($where = array(), $order = array(), $limitStart = null, $limitEnd = null)
-    {
-        $res = self::select(array("*"), $where, $order, $limitStart, $limitEnd);
-        $retour = array();
-        foreach ($res as $unRes) {
-            $object = new static();
-            $object->hydrate($unRes);
-            $retour[] = $object;
-        }
-        return $retour;
     }
 
     /**
@@ -483,18 +451,42 @@ abstract class Entity
     }
 
     /**
-     * Find one entity from criteria
-     * @param array $where        - associative array ex:
+     * Return entity collection fetched from database with criteria
+     * @param array $where - associative array ex:
      *            simple criteria        array('idMarque' => 1)
      *            custom operator        array('idMarque' => array('operator' => '<=','value' => ''))
      *            raw SQL                array('idMarque' => array('IN (5,6,4)'))
-     * @param array $order        - associative array ex:array('libMarque'=>'ASC')
+     * @param array $order - associative array ex:array('libMarque'=>'ASC')
+     * @param int $limitStart - int
+     * @param int $limitEnd - int
+     * @return static[]
+     */
+    public static function find($where = array(), $order = array(), $limitStart = null, $limitEnd = null)
+    {
+        self :: _validateEntity();
+
+        $queryHelper = static::buildSelectQuery(array("*"), $where, $order, $limitStart, $limitEnd);
+
+        return new EntityCollection(static::$_dataSource, $queryHelper, get_called_class());
+    }
+
+    /**
+     * Find one entity from criteria
+     * @param array $where - associative array ex:
+     *            simple criteria        array('idMarque' => 1)
+     *            custom operator        array('idMarque' => array('operator' => '<=','value' => ''))
+     *            raw SQL                array('idMarque' => array('IN (5,6,4)'))
+     * @param array $order - associative array ex:array('libMarque'=>'ASC')
      * @return static
      */
     public static function findOne($where = array(), $order = array())
     {
-        $collection = self::find($where, $order, 1);
-        return isset($collection[0]) ? $collection[0] : null;
+        if ($dataEntity = self::select(array('*'), $where, $order, 1)) {
+            $entity = new static();
+            $entity->hydrate($dataEntity);
+            return $entity;
+        } else
+            return null;
     }
 
     /**
@@ -508,7 +500,7 @@ abstract class Entity
 
     /**
      * Count number of entity in database from criteria
-     * @param array $where        - associative array ex:
+     * @param array $where - associative array ex:
      *            simple criteria        array('idMarque' => 1)
      *            custom operator        array('idMarque' => array('operator' => '<=','value' => ''))
      *            raw SQL                array('idMarque' => array('IN (5,6,4)'))
@@ -520,21 +512,78 @@ abstract class Entity
         return isset($rawSqlFetch[0]) && isset($rawSqlFetch[0]['nb']) ? $rawSqlFetch[0]['nb'] : null;
     }
 
+    /**
+     * Build an InternalQueryHelper to select entities
+     * @param array $fields - selected fields
+     * @param array $where - associative array ex:
+     *             simple criteria       array('idMarque' => 1)
+     *             custom operator       array('idMarque' => array('operator' => '<=','value' => '5'))
+     *    raw SQL without operator       array('idMarque' => array('IN (5,6,4)')
+     * @param array $order - associative array ex:array('libMarque'=>'ASC')
+     * @param int $limitStart - int
+     * @param int $limitEnd - int
+     * @return InternalQueryHelper
+     */
+    public static function buildSelectQuery($fields = array('*'), $where = array(), $order = array(), $limitStart = null, $limitEnd = null)
+    {
+        $entityTableName = static::formatTableNameMySQL();
+
+        // be sure that "*" is prefixed with entity table name
+        foreach ($fields as &$oneField) {
+            if ($oneField == "*") {
+                $oneField = $entityTableName . ".*";
+                break;
+            }
+        }
+
+
+        $helper = new InternalQueryHelper();
+
+        $where = $helper->prefixWhereWithTable($where, $entityTableName);
+        $orders = $helper->prefixOrderWithTable($order, $entityTableName);
+
+        $helper->select($fields)
+            ->from($entityTableName);
+
+        // check one to one relation with auto get fields
+        // and append necessary fields to select
+        $nbRelation = 0;
+        foreach (static::$_relations as $uneRelation) {
+            if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && count($uneRelation['autoGetFields']) > 0) {
+                // add auto get fields to select
+                foreach ($uneRelation['autoGetFields'] as &$oneField) $oneField = 'rel' . $nbRelation . "." . $oneField;
+                $helper->select($uneRelation['autoGetFields']);
+
+                $helper->leftJoin($uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
+                    'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $entityTableName . '.`' . $uneRelation['sourceField'] . '`');
+                $nbRelation++;
+            }
+        }
+
+        $helper->buildWhereFromArray($where);
+        foreach ($orders as $orderField => $orderVal) {
+            $helper->orderBy($orderField, $orderVal);
+        }
+
+        $helper->limit($limitStart, $limitEnd);
+
+        return $helper;
+    }
 
     /**
      * Build a select mysql query for this entity from criteria in parameters
      * return a raw mysql fetch assoc
-     * Using Raw SQL, assume that you properly filter user input
+     * Using Raw SQL _setVal, assume that you properly filter user input
      *
-     * @param array $fields    - selected fields
-     * @param array $where              - associative array ex:
+     * @param array $fields - selected fields
+     * @param array $where - associative array ex:
      *             simple criteria       array('idMarque' => 1)
      *             custom operator       array('idMarque' => array('operator' => '<=','value' => '5'))
      *    raw SQL without operator       array('idMarque' => array('IN (5,6,4)')
-     * @param array $order              - associative array ex:array('libMarque'=>'ASC')
-     * @param int $limitStart           - int
-     * @param int $limitEnd             - int
-     * @param int $pdoFetchMode         - PDO Fetch Mode (default : \PDO::FETCH_ASSOC)
+     * @param array $order - associative array ex:array('libMarque'=>'ASC')
+     * @param int $limitStart - int
+     * @param int $limitEnd - int
+     * @param int $pdoFetchMode - PDO Fetch Mode (default : \PDO::FETCH_ASSOC)
      * @return array
      * @throws Exception
      */
@@ -543,96 +592,9 @@ abstract class Entity
         // validate entity PHP structure if necessary before using it
         static::_validateEntity();
 
-        $limitStr = $whereStr = $orderStr = $joinStr = '';
-        $sqlParams = array();
-
-        // building where clause
-        if (count($where) > 0) {
-            $k = 0;
-            $whereStr = "WHERE ";
-            foreach ($where as $nomColonne => $oneCritera) {
-                if ($k > 0) $whereStr .= ' AND ';
-
-                $val = '?';
-                $operator = "=";
-                if (is_array($oneCritera)) {
-                    // using raw mysql
-                    if (count($oneCritera) == 1 && isset($oneCritera[0])) {
-                        $operator = '';
-                        $val = $oneCritera[0];
-                    } else {
-                        // custom operator
-                        if (isset($oneCritera['operator'])) {
-                            $operator = $oneCritera['operator'];
-                        }
-                        // custom value with prepared data or raw mysql if value is in an array
-                        if (isset($oneCritera['value'])) {
-                            if (is_array($oneCritera['value']) && isset($oneCritera['value'][0])) {
-                                $val = $oneCritera['value'][0];
-                            } else {
-                                $sqlParams[] = $oneCritera['value'];
-                            }
-                        }
-                    }
-                } else {
-                    $sqlParams[] = $oneCritera;
-                }
-
-                $whereStr .= static::formatTableNameMySQL().'.`'.$nomColonne.'` '.$operator.' '.$val;
-                $k++;
-            }
-        }
-
-        // building order clause
-        if (count($order) > 0) {
-            $k = 0;
-            $orderStr = "ORDER BY ";
-            foreach ($order as $orderField => $sensOrder) {
-                // allow only ASC or DESC or empty string in $sensOrder
-                // ORDER BY RAND() possible with filling only $orderField with "RAND()"
-                if ($sensOrder != "ASC" && $sensOrder != "DESC" && $sensOrder != "") continue;
-
-                if ($k > 0) $orderStr .= ',';
-
-                $orderStr .= $orderField.' '.$sensOrder;
-                $k++;
-            }
-        }
-
-        // building limit clause
-        if ($limitStart !== null) {
-            $limitStr = 'LIMIT '.(int)$limitStart;
-            if ($limitEnd !== null) {
-                $limitStr .= ','.(int)$limitEnd;
-            }
-        }
-
-        // check one to one relation with autogetFields
-        // and append necessary fields to select
-        $joinData = static::getOneToOneRelationMysqlJoinData();
-        if (count($joinData['joinFields']) > 0) {
-            $joinStr = $joinData['joinStr'];
-            $fields = array_merge($fields, $joinData['joinFields']);
-        }
-
-        // be sure that "*" is prefixed with entity table name
-        foreach ($fields as &$oneField) {
-            if ($oneField == "*") {
-                $oneField = self::formatTableNameMySQL().".*";
-                break;
-            }
-        }
-
-        $mysqlQuery = "
-   			SELECT ".implode(",", $fields)."
-   			FROM ".self::formatTableNameMySQL()."
-   			$joinStr
-   			$whereStr
-   			$orderStr
-   			$limitStr";
-
-        $query = static::$_dataSource->prepare($mysqlQuery);
-        $query->execute($sqlParams);
+        $mysqlQuery = static::buildSelectQuery($fields, $where, $order, $limitStart, $limitEnd);
+        $query = static::$_dataSource->prepare($mysqlQuery->buildQuery());
+        $query->execute($mysqlQuery->getWhereParamsValues());
 
         // check for mysql error
         $errorcode = $query->errorInfo();
@@ -641,11 +603,14 @@ abstract class Entity
         if ($pdoFetchMode === null) {
             $pdoFetchMode = \PDO::FETCH_ASSOC;
         }
+        if ($limitStart == 1 && ($limitEnd === null || $limitEnd === 1)) {
+            return $query->fetch($pdoFetchMode);
+        }
         return $query->fetchAll($pdoFetchMode);
     }
 
     /**
-     * Get array with SQL subquery to fetch OneToOne relation autoget fields
+     * Get array with SQL subquery to fetch OneToOne relation auto get fields
      * @param string $tableAlias
      * @return array
      */
@@ -663,14 +628,14 @@ abstract class Entity
         $tableName = !empty($tableAlias) ? $tableAlias : self::formatTableNameMySQL();
         foreach (static::$_relations as $uneRelation) {
             if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && count($uneRelation['autoGetFields']) > 0) {
-                // add autoget field to select
-                foreach ($uneRelation['autoGetFields'] as &$oneField) $oneField = 'rel'.$nbRelation.".".$oneField;
+                // add auto get field to select
+                foreach ($uneRelation['autoGetFields'] as &$oneField) $oneField = 'rel' . $nbRelation . "." . $oneField;
                 $joinData['joinFields'] = array_merge($joinData['joinFields'], $uneRelation['autoGetFields']);
 
                 // create join for relation
                 $joinData['joinStr'] .= '
-                LEFT JOIN '.$uneRelation['classRelation']::formatTableNameMySQL().' rel'.$nbRelation.'
-                ON rel'.$nbRelation.'.`'.$uneRelation['targetField'].'` = '.$tableName.'.'.$uneRelation['sourceField'].' ';
+                LEFT JOIN ' . $uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation . '
+                ON rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $tableName . '.' . $uneRelation['sourceField'] . ' ';
 
                 $nbRelation++;
             }
@@ -680,10 +645,10 @@ abstract class Entity
 
     /**
      * Hydrate entity from a fetch assoc
-     * including OneToOne relation autoget field
+     * including OneToOne relation auto get field
      * @param $data
      */
-    private function hydrate($data)
+    public function hydrate($data)
     {
         // using reflection to check if property exist
         $reflection = new \ReflectionObject($this);
@@ -693,7 +658,7 @@ abstract class Entity
                 $this->{$k} = $v;
 
             foreach (static::$_relations as $uneRelation) {
-                // check if this is an autogetfield from relation
+                // check if this is an auto get field from relation
                 if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && in_array($k, $uneRelation['autoGetFields'])) {
                     $this->{$k} = $v;
                     break;
@@ -713,14 +678,18 @@ abstract class Entity
         // validate entity PHP structure if necessary before using it
         static::_validateEntity();
 
-        $req = "DELETE FROM ".self::formatTableNameMySQL()." WHERE ".static::$_primaryKey." = ?";
+        $query = new InternalQueryHelper();
+        $query->delete(self::formatTableNameMySQL())
+            ->where(static::$_primaryKey, "=", "?");
 
-        $query = static::$_dataSource->prepare($req);
+        $query = static::$_dataSource->prepare($query->buildQuery());
         $query->execute(array($this->{static::$_primaryKey}));
 
         // check for mysql error
         $errorcode = $query->errorInfo();
         if ($errorcode[0] != "00000") throw new Exception($errorcode[2]);
+
+        $this->_isNew = true;
 
         return true;
     }
@@ -735,26 +704,24 @@ abstract class Entity
         // validate entity PHP structure if necessary before using it
         static::_validateEntity();
 
-        $fieldsStr = '';
-        foreach (static::$_tableFields as $k => $unChamp) {
-            if ($k > 0) {
-                $fieldsStr .= ',';
-            }
+        $helper = new InternalQueryHelper();
+        $helper->update(static::$_tableName);
+        $params = array();
+        foreach (static::$_tableFields as $unChamp) {
+            // array is for raw SQL value
             if (is_array($this->$unChamp) && isset($this->{$unChamp}[0])) {
-                $fieldsStr .= "`$unChamp` = ".$this->{$unChamp}[0];
+                $helper->set($unChamp, $this->{$unChamp}[0]);
             } else {
-                $fieldsStr .= "`$unChamp` =  ?";
-                $params[] = $this->$unChamp;
+                $helper->set($unChamp, '?');
+                $params[] = $this->{$unChamp};
             }
         }
-
-        $req = "UPDATE ".self::formatTableNameMySQL()."
-				SET $fieldsStr
-				WHERE ".self::formatTableNameMySQL().".`".static::$_primaryKey."` = ?;";
+        $helper->where(self::formatTableNameMySQL() . ".`" . static::$_primaryKey . "`", "=", "?");
 
         $params[] = $this->{static::$_primaryKey};
+        // var_dump($helper -> buildQuery());
 
-        $query = static::$_dataSource->prepare($req);
+        $query = static::$_dataSource->prepare($helper->buildQuery());
         $query->execute($params);
 
         // check for mysql error
@@ -772,34 +739,32 @@ abstract class Entity
         // validate entity PHP structure if necessary before using it
         static::_validateEntity();
 
-        $champs = $params = '';
-        $paramsValues = array();
+        $params = array();
+        $queryHelp = new InternalQueryHelper();
+        $queryHelp->insertInto(self::formatTableNameMySQL());
 
         // if primary key has forced value and is not present in tableField array
         if (!empty($this->{static::$_primaryKey}) && !in_array(static::$_primaryKey, static::$_tableFields)) {
             array_unshift(static::$_tableFields, static::$_primaryKey);
         } else {
             // use autoincrement for primary key
-            $champs .= "`".static::$_primaryKey."`,";
-            $params .= 'NULL,';
+            $queryHelp->values(static::$_primaryKey, 'NULL');
         }
 
         foreach (static::$_tableFields as $unChamp) {
-            $champs .= "`".$unChamp."`,";
-
-            if (is_array($this->$unChamp) && isset($this->{$unChamp}[0])) {
-                $params .= $this->{$unChamp}[0].',';
-            } else {
-                $params .= '?,';
-                $paramsValues[] = $this->$unChamp;
+            // array is for raw SQL value
+            if (is_array($this->$unChamp) && isset($this->{$unChamp}[0]))
+                $val = $this->{$unChamp}[0];
+            else {
+                $val = '?';
+                $params[] = $this->$unChamp;
             }
 
+            $queryHelp->values($unChamp, $val);
         }
-        $params = rtrim($params, ",");
-        $champs = rtrim($champs, ",");
 
-        $query = static::$_dataSource->prepare("INSERT INTO ".self::formatTableNameMySQL()." ($champs) VALUES ($params);");
-        $query->execute($paramsValues);
+        $query = static::$_dataSource->prepare($queryHelp->buildQuery());
+        $query->execute($params);
 
         // check for mysql error
         $errorcode = $query->errorInfo();
@@ -808,20 +773,20 @@ abstract class Entity
         $this->_isNew = false;
 
         // grab the last insert ID if empty PK (auto_increment)
-        if(empty($this->{static::$_primaryKey}))
+        if (empty($this->{static::$_primaryKey}))
             $this->{static::$_primaryKey} = static::$_dataSource->lastInsertId();
 
         return true;
     }
-	
-	/**
+
+    /**
      * Initiates a transaction
-     *
-     * @return boolean
-     * @throw \PicORM\Exception
+     * @return bool
+     * @throws Exception
      */
-    public static function begin() {
-        if(!$result = static::$_dataSource->beginTransaction()) {
+    public static function begin()
+    {
+        if (!$result = static::$_dataSource->beginTransaction()) {
             throw new Exception("Transaction could not begin!");
         }
         return $result;
@@ -832,7 +797,8 @@ abstract class Entity
      *
      * @return boolean
      */
-    public static function rollback() {
+    public static function rollback()
+    {
         return static::$_dataSource->rollBack();
     }
 
@@ -841,7 +807,8 @@ abstract class Entity
      *
      * @return boolean
      */
-    public static function commit() {
+    public static function commit()
+    {
         return static::$_dataSource->commit();
     }
 
@@ -849,7 +816,16 @@ abstract class Entity
      * Return PDO instance
      * @return \PDO
      */
-    public static function getDataSource() {
+    public static function getDataSource()
+    {
         return static::$_dataSource;
+    }
+
+    /**
+     * Set PDO instance
+     */
+    public static function setDataSource($_dataSource)
+    {
+        static::$_dataSource = $_dataSource;
     }
 }
