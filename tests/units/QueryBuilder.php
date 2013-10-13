@@ -8,8 +8,16 @@ class QueryBuilder extends atoum {
         $insert -> insertInto("tableName") -> values("tableField","1");
         $resultQuery = "INSERT INTO tableName (tableField) VALUES (1)";
         $this -> variable($insert -> buildQuery()) -> isEqualTo($resultQuery);
-        $insert -> values("tableField2","'foobar'");
+
+        $insert = new \PicORM\QueryBuilder();
+        $insert -> insertInto("tableName") -> values("tableField","1")-> values("tableField2","'foobar'");
         $resultQuery = "INSERT INTO tableName (tableField,tableField2) VALUES (1,'foobar')";
+        $this -> variable($insert -> buildQuery()) -> isEqualTo($resultQuery);
+
+        $insert = new \PicORM\QueryBuilder();
+        $insert -> insertInto("tableName") -> values("tableField","1") -> values("tableField2","'foobar'")
+            -> newValues("tableField2","'aze'") -> values("tableField","1");
+        $resultQuery = "INSERT INTO tableName (tableField,tableField2) VALUES (1,'foobar'),(1,'aze')";
         $this -> variable($insert -> buildQuery()) -> isEqualTo($resultQuery);
     }
 
