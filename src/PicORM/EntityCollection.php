@@ -36,7 +36,7 @@ class EntityCollection implements \Iterator
      * Entity class name
      * @var
      */
-    private $className;
+    private $_className;
 
     /**
      * @param \PDO $dataSource
@@ -46,7 +46,7 @@ class EntityCollection implements \Iterator
     public function __construct(\PDO $dataSource, InternalQueryHelper $queryHelper, $className)
     {
         $this->_dataSource = $dataSource;
-        $this->className = $className;
+        $this->_className = $className;
         $this->_queryHelper = $queryHelper;
     }
 
@@ -57,7 +57,7 @@ class EntityCollection implements \Iterator
      */
     public function fetchCollection()
     {
-        $entityName = $this->className;
+        $entityName = $this->_className;
         $query = $this->_dataSource->prepare($this->_queryHelper->buildQuery());
         $query->execute($this->_queryHelper->getParams());
 
@@ -84,7 +84,7 @@ class EntityCollection implements \Iterator
      */
     public function delete()
     {
-        $entityClass = $this->className;
+        $entityClass = $this->_className;
 
         // cloning fetch query to get where,order by and limit values
         $deleteQuery = clone($this->_queryHelper);
@@ -105,7 +105,7 @@ class EntityCollection implements \Iterator
      */
     public function update(array $setValues)
     {
-        $entityClass = $this->className;
+        $entityClass = $this->_className;
 
         // cloning fetch query to get where,order by and limit values
         $updateQuery = clone($this->_queryHelper);
