@@ -6,7 +6,7 @@ namespace PicORM;
  * and allow to fetch / modify / delete them
  * @package PicORM
  */
-class EntityCollection implements \Iterator
+class EntityCollection implements \Iterator, \Countable, \ArrayAccess
 {
     /**
      * Iterator pointer position
@@ -59,14 +59,13 @@ class EntityCollection implements \Iterator
     {
         $entityName = $this->_className;
         $query = $this->_dataSource->prepare($this->_queryHelper->buildQuery());
-        $query->execute($this->_queryHelper->getParams());
+        $query->execute($this->_queryHelper->getWhereParamsValues());
 
         // check for mysql error
         $errorcode = $query->errorInfo();
         if ($errorcode[0] != "00000") throw new Exception($errorcode[2]);
 
         $fetch = $query->fetchAll(\PDO::FETCH_ASSOC);
-
         foreach ($fetch as &$unRes) {
             $object = new $entityName();
             $object->hydrate($unRes);
@@ -190,6 +189,35 @@ class EntityCollection implements \Iterator
     public function valid()
     {
         return isset($this->entities[$this->position]);
+    }
+
+    public function count() {
+        // iterator_count assure that fetching is done before counting
+        return iterator_count($this);
+    }
+
+    public function offsetSet($offset, $value) {
+        if (!$this->isFetched) $this->fetchCollection();
+
+        if (is_null($offset))
+            $this->entities[] = $value;
+        else
+            $this->entities[$offset] = $value;
+    }
+    public function offsetExists($offset) {
+        if (!$this->isFetched) $this->fetchCollection();
+
+        return isset($this->entities[$offset]);
+    }
+    public function offsetUnset($offset) {
+        if (!$this->isFetched) $this->fetchCollection();
+
+        unset($this->entities[$offset]);
+    }
+    public function offsetGet($offset) {
+        if (!$this->isFetched) $this->fetchCollection();
+
+        return isset($this->entities[$offset]) ? $this->entities[$offset] : null;
     }
 }
 
