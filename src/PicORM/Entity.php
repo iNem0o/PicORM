@@ -325,9 +325,11 @@ abstract class Entity
                         $nbRelation++;
                     }
                 }
-                $selectRelations->where("`" . $configRelation['relationTable'] . "`." . $configRelation['sourceField'], '=', '?');
+                $selectRelations->buildWhereFromArray(
+                    array("`".$configRelation['relationTable']."`.".$configRelation['sourceField'] => $this->{$configRelation['sourceField']})
+                );
 
-                $relationValue = $classRelation::findFromQuery($selectRelations->buildQuery(), array($this->{$configRelation['sourceField']}));
+                $relationValue = new EntityCollection(static::getDataSource(),$selectRelations,$classRelation);
                 break;
         }
 
