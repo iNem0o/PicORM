@@ -4,7 +4,15 @@ use \atoum;
 
 class Entity extends atoum {
 
-    public function createAndSaveRawEntity() {
+    public static function cleanTables() {
+        \PicORM\Entity::getDataSource()->query('TRUNCATE brands');
+        \PicORM\Entity::getDataSource()->query('TRUNCATE cars');
+        \PicORM\Entity::getDataSource()->query('TRUNCATE car_have_tag');
+        \PicORM\Entity::getDataSource()->query('TRUNCATE tags');
+    }
+
+    //// DATA PROVIDERS /////
+    public static function createAndSaveRawEntity() {
         self::cleanTables();
         include_once __DIR__ . '/../scripts/raw_entity.php';
         $testBrand = new \Brand();
@@ -13,13 +21,7 @@ class Entity extends atoum {
         $testBrand -> save();
         return array($testBrand);
     }
-    public static function cleanTables() {
-        return;
-        \PicORM\Entity::getDataSource()->query('TRUNCATE brands');
-        \PicORM\Entity::getDataSource()->query('TRUNCATE cars');
-        \PicORM\Entity::getDataSource()->query('TRUNCATE car_have_tag');
-        \PicORM\Entity::getDataSource()->query('TRUNCATE tags');
-    }
+
     public static function createAndSaveRawEntityWithOneToOneRelation() {
         self::cleanTables();
         include_once __DIR__ . '/../scripts/raw_entity.php';
@@ -67,21 +69,11 @@ class Entity extends atoum {
         $car -> setTag($tags);
         $car -> save();
         return array(
-            array($car,array($tags))
+            array($car,$tags)
         );
     }
 
-    /**
-     * @dataProvider createAndSaveRawEntityWithManyToManyRelation
-     */
-    public function testManyToManyRelationCreation($car,$tags) {
-        $req = \PicORM\Entity::getDataSource()->prepare('SELECT count(*) as nb FROM car_have_tag WHERE idCar = ?');
-        $req -> execute(array($car -> idCar));
-        $res = $req->fetch(\PDO::FETCH_ASSOC);
-        $this -> variable($res['nb'])->isEqualTo("3");
-    }
-
-    public function testOneToManyRelationCreation() {
+    public static function createAndSaveRawEntityWithOneToManyRelation() {
         self::cleanTables();
         include_once __DIR__ . '/../scripts/raw_entity.php';
 
@@ -102,7 +94,46 @@ class Entity extends atoum {
         $car3 -> nameCar = 'AcmeCar3';
         $car3 -> noteCar = '15';
 
-        $testBrand -> setCar(array($car,$car2,$car3));
+        $cars = array($car,$car2,$car3);
+
+        $testBrand -> setCar($cars);
+
+        return array(
+            array($testBrand,$cars)
+        );
+    }
+
+    //// END DATA PROVIDERS /////
+
+    /**
+     * @dataProvider createAndSaveRawEntityWithManyToManyRelation
+     */
+    public function testManyToManyRelationCreation($car,$tags) {
+        // create test
+        $req = \PicORM\Entity::getDataSource()->prepare('SELECT count(*) as nb FROM car_have_tag WHERE idCar = ?');
+        $req -> execute(array($car -> idCar));
+        $res = $req->fetch(\PDO::FETCH_ASSOC);
+        $this -> variable($res['nb'])->isEqualTo("3");
+    }
+
+    /**
+     * @dataProvider createAndSaveRawEntityWithManyToManyRelation
+     */
+    public function testManyToManyRelation($car,$tags) {
+
+        // get test
+        $tagsGet = $car -> getTag();
+        $this -> variable(count($tagsGet))->isEqualTo("3");
+
+        $this -> variable($tagsGet[0]->libTag)->isEqualTo($tags[0]->libTag);
+        $this -> variable($tagsGet[1]->libTag)->isEqualTo($tags[1]->libTag);
+        $this -> variable($tagsGet[2]->libTag)->isEqualTo($tags[2]->libTag);
+    }
+
+    /**
+     * @dataProvider createAndSaveRawEntityWithOneToManyRelation
+     */
+    public function testOneToManyRelationCreation($testBrand,$testCars) {
 
         $req = \PicORM\Entity::getDataSource()->prepare('SELECT count(*) as nb FROM cars WHERE idBrand = ?');
         $req -> execute(array($testBrand -> idBrand));
@@ -111,13 +142,38 @@ class Entity extends atoum {
     }
 
     /**
+     * @dataProvider createAndSaveRawEntityWithOneToManyRelation
+     */
+    public function testOneToManyRelation($testBrand,$testCars) {
+
+        $cars = $testBrand -> getCar();
+        $this -> variable($cars[0]->nameCar)->isEqualTo($testCars[0]->nameCar);
+        $this -> variable($cars[1]->nameCar)->isEqualTo($testCars[1]->nameCar);
+        $this -> variable($cars[2]->nameCar)->isEqualTo($testCars[2]->nameCar);
+    }
+
+    /**
      * @dataProvider createAndSaveRawEntityWithOneToOneRelation
      */
     public function testOneToOneRelationCreation($testBrand,$car) {
+        // test insert
         $req = \PicORM\Entity::getDataSource()->prepare('SELECT count(*) as nb FROM cars WHERE idBrand = ? AND idCar = ?');
         $req -> execute(array($testBrand -> idBrand, $car -> idCar));
         $res = $req->fetch(\PDO::FETCH_ASSOC);
         $this -> variable($res['nb'])->isEqualTo('1');
+    }
+
+    /**
+     * @dataProvider createAndSaveRawEntityWithOneToOneRelation
+     */
+    public function testOneToOneRelation($testBrand,$car) {
+        // test get relation
+        $brand = $car -> getBrand();
+        $this -> variable($brand->nameBrand)->isEqualTo($testBrand->nameBrand);
+
+        // test autoget field
+        $car = \Car::findOne(array('idCar'=> $car->idCar));
+        $this -> variable($car->nameBrand)->isEqualTo($testBrand->nameBrand);
     }
 
     /**
