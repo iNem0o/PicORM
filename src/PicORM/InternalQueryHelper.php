@@ -75,7 +75,6 @@ class InternalQueryHelper extends QueryBuilder
             if (is_array($oneCritera)) {
                 // using raw mysql
                 if (count($oneCritera) == 1 && isset($oneCritera[0])) {
-                    $operator = '';
                     $val = $oneCritera[0];
                 } else {
                     // custom operator
