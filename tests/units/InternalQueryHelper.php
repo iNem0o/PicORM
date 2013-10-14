@@ -36,16 +36,15 @@ class InternalQueryHelper extends atoum {
         $select = new \PicORM\InternalQueryHelper();
         $val = 1;
         $select -> select('*') -> from('tableName');
-        $resultQuery = "SELECT * FROM tableName   WHERE id = ?";
+        $resultQuery = "SELECT * FROM tableName   WHERE id = ? AND datetime = NOW() AND libelle LIKE CONCAT('%',?,'%')";
         $select -> buildWhereFromArray(array(
             'id' => $val,
             'datetime' => array('NOW()'),
             'libelle' => array(
                 'operator' => 'LIKE',
-                'value' => "CONCAT('%',?,'%')",
+                'value' => array("CONCAT('%',?,'%')"),
             ),
         ));
-        exit($select->buildQuery());
         $resParams = $select -> getWhereParamsValues();
         $this -> variable($select->buildQuery())->isEqualTo($resultQuery);
         $this -> variable($resParams[0])->isEqualTo($val);
