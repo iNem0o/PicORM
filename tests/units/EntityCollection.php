@@ -54,5 +54,32 @@ class EntityCollection extends atoum {
         $this -> variable(count($testBrand->getCar()))->isEqualTo('0');
     }
 
+    /**
+     * @dataProvider createAndSaveRawEntityWithOneToManyRelation
+     */
+    public function testUpdateCollection($testBrand,$cars) {
+        include_once __DIR__ . '/../scripts/raw_entity.php';
+
+        $testBrand->getCar()->update(array('nameCar' => 'test'));
+
+        $req = \PicORM\Entity::getDataSource()->prepare('
+            SELECT count(*) as nb FROM cars WHERE nameCar = ?
+        ');
+        $req -> execute(array('test'));
+        $res = $req->fetch(\PDO::FETCH_ASSOC);
+
+        $this -> variable($res['nb'])->isEqualTo('3');
+
+        $testBrand->getCar()->update(array('nameCar' => 'test'));
+
+        $req = \PicORM\Entity::getDataSource()->prepare('
+            SELECT count(*) as nb FROM cars WHERE nameCar = ?
+        ');
+        $req -> execute(array('test'));
+        $res = $req->fetch(\PDO::FETCH_ASSOC);
+
+        $this -> variable($res['nb'])->isEqualTo('3');
+    }
+
 
 }

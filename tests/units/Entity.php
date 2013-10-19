@@ -220,5 +220,4 @@ class Entity extends atoum {
         $this -> variable($res['nameBrand'])->isEqualTo('Acme');
         $this -> variable($res['noteBrand'])->isEqualTo(10);
     }
-
 }

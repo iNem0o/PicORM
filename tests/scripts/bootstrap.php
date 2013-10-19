@@ -2,8 +2,11 @@
 require __DIR__ . '/../../src/autoload.inc.php';
 
 include_once __DIR__ . '/raw_entity.php';
-
-$pdo = new \PDO('mysql:dbname=test2;host=localhost', 'root', 'root');
+try {
+    $pdo = new \PDO('mysql:dbname=testspicorm;host=localhost', 'root', 'root');
+} catch(\PicORM\Exception $e) {
+    exit($e->getMessage());
+}
 
 \PicORM\PicORM::configure(array(
     'datasource' => $pdo
