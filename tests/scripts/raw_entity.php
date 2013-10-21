@@ -1,9 +1,8 @@
 <?php
-class Brand extends \PicOrm\Entity
+class BrandEntity extends \PicOrm\Entity
 {
     protected static $_tableName = 'brands';
     protected static $_primaryKey = "idBrand";
-    protected static $_relations = array();
 
     protected static $_tableFields = array(
         'nameBrand',
@@ -20,6 +19,10 @@ class Brand extends \PicOrm\Entity
         // based on this.idBrand = Car.idBrand
         self::addRelationOneToMany('idBrand', 'Car', 'idBrand');
     }
+}
+
+class Brand extends BrandEntity {
+
 }
 
 class Tag extends \PicOrm\Entity

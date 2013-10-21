@@ -40,10 +40,11 @@ class PicORM
         // override with default configuration if not present
         $configuration += static::$_defaultConfiguration;
 
-        if (isset($configuration['datasource']) && $configuration['datasource'] instanceof \PDO) {
-            static::$_dataSource = $configuration['datasource'];
-            Entity::setDataSource(static::$_dataSource);
-        }
+        if($configuration['datasource'] === null || !$configuration['datasource'] instanceof \PDO)
+            throw new Exception("PDO Datasource is required!");
+
+        static::$_dataSource = $configuration['datasource'];
+        Entity::setDataSource(static::$_dataSource);
 
         static::$_configuration = $configuration;
     }

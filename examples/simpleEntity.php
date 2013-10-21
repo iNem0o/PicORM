@@ -96,7 +96,7 @@ try {
 
     // raw mysql query
     // return an entity collection
-    $result = Brand::findFromQuery("SELECT * FROM brands WHERE noteBrand = ?",array(10));
+    $result = Brand::findQuery("SELECT * FROM brands WHERE noteBrand = ?",array(10));
 
 } catch (PicORM\Exception $e) {
     // !!!! disable showing PicORM\Exception for production because it contains SQL query !!!!

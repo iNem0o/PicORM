@@ -162,7 +162,7 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
 // iterator methods
 
     /**
-     * Rewind method allow to lazy fetch collection only
+     * Rewind method allow to lazy fetch collection
      * when iteration begins
      */
     public function rewind()
@@ -192,8 +192,9 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
     }
 
     public function count() {
-        // iterator_count assure that fetching is done before counting
-        return iterator_count($this);
+        if (!$this->isFetched) $this->fetchCollection();
+
+        return count($this->entities);
     }
 
     public function offsetSet($offset, $value) {

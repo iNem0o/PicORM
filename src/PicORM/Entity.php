@@ -90,7 +90,6 @@ abstract class Entity
             $subClassName = get_class(new static());
             if (static::$_tableName === null) throw new Exception($subClassName . '::$_tableName must be implemented');
             if (static::$_primaryKey === null) throw new Exception($subClassName . '::$_primaryKey must be implemented');
-            if (static::$_relations === null) throw new Exception($subClassName . '::$_relations must be implemented');
             if (static::$_tableFields === null) throw new Exception($subClassName . '::$_tableFields must be implemented');
 
             // entity OOP structure is OK to declare relationship
@@ -326,10 +325,10 @@ abstract class Entity
                     }
                 }
                 $selectRelations->buildWhereFromArray(
-                    array("`".$configRelation['relationTable']."`.".$configRelation['sourceField'] => $this->{$configRelation['sourceField']})
+                    array("`" . $configRelation['relationTable'] . "`." . $configRelation['sourceField'] => $this->{$configRelation['sourceField']})
                 );
 
-                $relationValue = new EntityCollection(static::getDataSource(),$selectRelations,$classRelation);
+                $relationValue = new EntityCollection(static::getDataSource(), $selectRelations, $classRelation);
                 break;
         }
 
@@ -432,12 +431,13 @@ abstract class Entity
     }
 
     /**
-     * Return entity collection fetched from database with custom mysql query
+     * Return entity array fetched from database with custom mysql query
      * @param $req
      * @param $params
      * @return static[]
+     * @todo must return EntityCollection
      */
-    public static function findFromQuery($req, $params)
+    public static function findQuery($req, $params)
     {
         $query = static::$_dataSource->prepare($req);
         $query->execute($params);
@@ -461,7 +461,7 @@ abstract class Entity
      * @param array $order - associative array ex:array('libMarque'=>'ASC')
      * @param int $limitStart - int
      * @param int $limitEnd - int
-     * @return static[]
+     * @return EntityCollection
      */
     public static function find($where = array(), $order = array(), $limitStart = null, $limitEnd = null)
     {
@@ -609,40 +609,6 @@ abstract class Entity
             return $query->fetch($pdoFetchMode);
         }
         return $query->fetchAll($pdoFetchMode);
-    }
-
-    /**
-     * Get array with SQL subquery to fetch OneToOne relation auto get fields
-     * @param string $tableAlias
-     * @return array
-     */
-    protected static function getOneToOneRelationMysqlJoinData($tableAlias = '')
-    {
-
-        // validate entity PHP structure if necessary before using it
-        static::_validateEntity();
-
-        $joinData = array(
-            'joinStr' => '',
-            'joinFields' => array()
-        );
-        $nbRelation = 0;
-        $tableName = !empty($tableAlias) ? $tableAlias : self::formatTableNameMySQL();
-        foreach (static::$_relations as $uneRelation) {
-            if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && count($uneRelation['autoGetFields']) > 0) {
-                // add auto get field to select
-                foreach ($uneRelation['autoGetFields'] as &$oneField) $oneField = 'rel' . $nbRelation . "." . $oneField;
-                $joinData['joinFields'] = array_merge($joinData['joinFields'], $uneRelation['autoGetFields']);
-
-                // create join for relation
-                $joinData['joinStr'] .= '
-                LEFT JOIN ' . $uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation . '
-                ON rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $tableName . '.' . $uneRelation['sourceField'] . ' ';
-
-                $nbRelation++;
-            }
-        }
-        return $joinData;
     }
 
     /**
