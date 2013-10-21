@@ -1,55 +1,77 @@
-PicORM
-======
-PicORM is a lightweight PHP ORM.
-
-PicORM is currently in Alpha stage.
-that's means that PicORM is in active development and should NOT be considered stable.
+# PicORM a lightweight ORM.
+---
+PicORM will help you to map your database rows into PHP object and create relations between them. 
 
 
-Features
---------
-* Create Read Update Delete
-* Relation between entities
-* Database abstraction layer
-* Hydrate collection from raw sql query
-* Use PDO and prepared statements
+## Install
+---
+### From composer
 
-Roadmap 0.0.3
---------
-* MySQL refactoring
-* QueryBuilder
-* EntityCollection with lazyloading and update / delete method
+Open terminal, and change directory to your project root folder
+Run this command to get the latest Composer version
 
+``curl -sS https://getcomposer.org/installer | php``
 
-Install from composer
--------------------
+Create a composer.json file with
+
 ```json
 {
     "require": {
-        "picorm/picorm": "0.0.2"
+        "picorm/picorm": "0.0.3"
     }
 }
 ```
+Install PicORM with
 
-Code sample
--------------------
-### Load and configure PicORM
+``php composer.phar install``
+
+
+### From source
+Clone ``https://github.com/iNem0o/PicORM`` repository and include ``PicORM`` autoload with
+```php require('path/to/PicORM/src/autoload.inc.php'); ```
+
+## Load and configure PicORM
+Before using ``PicORM`` you have to configure it. 
+``datasource`` is the only required parameter and it have to be a PDO instance
+
 ```php
-require('src/autoload.inc.php');
-
-use PicORM\Entity;
-Entity::configure(array(
+\PicORM\PicORM::configure(array(
 	'datasource' => new PDO('mysql:dbname=DBNAME;host=HOST', 'DBLOGIN', 'DBPASSWD')
 ));
 ```
 
-### Declare entity
+
+## Entity
+---
+### Implements an Entity
+
+First you have to create a table, which your entity will be mapped to
+
+```sql
+    CREATE TABLE `brands` (
+      `idBrand` int(11) NOT NULL AUTO_INCREMENT,
+      `nameBrand` varchar(100) NOT NULL,
+      `noteBrand` float DEFAULT 0,
+      PRIMARY KEY (`idBrand`)
+    ) ENGINE=MyISAM;
+```
+
+Next create a class which extends ``\PicORM\Entity``
+You have to implements some static parameters to describe your MySQL table schema, if you forgot one of them, a ``\PicORM\Exception`` will remind you
+
+  ``protected static $_tableName`` MySQL table name
+  ``protected static $_primaryKey`` table primary key field name
+  ``protected static $_tableFields`` array with all mysql table fields name without primary key
+
+and then, add one public property by table field with ``public $fieldName``
+  
+  **Complete Brand entity code**
+  
 ```php
     class Brand extends \PicORM\Entity
     {
         protected static $_tableName = 'brands';
-        protected static $_primaryKey = "idBrand";
-        protected static $_relations = array();
+        protected static $_primaryKey = 'idBrand';
 
         protected static $_tableFields = array(
             'nameBrand',
@@ -63,33 +85,157 @@ Entity::configure(array(
     }
 ```
 
-### Manipulate entity
+### Create and save an Entity
+
 ```php
-	// creating new entity
+// creating new entity
 	$brand = new Brand();
 
-	// setting field
+// setting field
 	$brand -> nameBrand = 'Peugeot';
 
-	// save entity
+// save entity
 	$brand -> save();
+```
 
-	// delete entity
+### Update and delete an Entity
+
+```php
+// Criteria with exact value (idBrand=10)
+    $brand = Brand :: findOne(array('idBrand' => 10));
+
+// setting entity property
+	$brand -> nameBrand = 'Audi';
+
+// save entity
+	$brand -> save();
+	
+// save entity
 	$brand -> delete();
 ```
-### Selecting data
+
+## Using find() or findOne() $where and $order parameters
+---
+**$where** parameter is data for building a WHERE mysql clause
+
+```php
+// simple criteria
+	$where = array('field' => 1);
+	
+// custom operator
+	$where = array('field' => array('operator' => '<=',
+									'value'    => '20')
+					);
+
+// raw sql value (NOT prepared, beware of SQL injection)
+	$where = array('field' => array(
+									'field'    => array('IN (5,6,4)'),
+									'dateTime' => array('NOW()')
+									)
+					);
+```
+	 
+**$order** parameter is data for building an ORDER mysql clause
+
+```php
+     $order = array(
+		'field'=>'ASC',
+		'field2' => DESC,
+		'RAND() => ''
+	 )
+```
+
+## Collections
+Collections in PicORM are created by ``find()`` method.
+When you have a fresh EntityCollection instance, data is not fetched yet. Fetching is done only when you try to access data with one of these methods
+
+```php
+// php array access
+	$firstEntity = $collection[0];
+	
+// counting collection
+	$nbEntities = count($collection);
+	
+// using getter
+	$firstEntity = $collection->get(0);
+	
+// iterate over the collection
+	foreach($collection as $entity)
+	
+// or manual fetching / re-fetching
+	$collection->fetchCollection();
+```
+
+An EntityCollection instance can interact with it entities and group SELECT and DELETE queries
+
+```php
+// Delete (execute only one mysql query)
+    $collection = Brand::find(array('noteBrand' => 10))
+                        ->delete();
+
+// Update  (execute only one mysql query)
+    $collection = Brand::find(array('noteBrand' => array('IN(9,10,11)')))
+                         ->update(array('noteBrand' => 5));
+						 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Code sample
+-------------------
+
+
+### Select multiple entity
 ```php
 // Criteria with exact value (noteBrand=10)
-    $result = Brand::find(array('noteBrand' => 10));
+    $collection = Brand::find(array('noteBrand' => 10));
 
 // Criteria with custom operator (noteBrand >= 10)
-    $result = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)));
+    $collection = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)));
 
 // Criteria with Raw SQL
-    $result = Brand::find(array('noteBrand' => array('IN(9,10,11)')));
+    $collection = Brand::find(array('noteBrand' => array('IN(9,10,11)')));
 
-// raw mysql query
-// return an entity collection
+
+
+// raw mysql query finding
     $result = Brand::findFromQuery("SELECT * FROM brands WHERE noteBrand = ?",array(10));
 ```
 
