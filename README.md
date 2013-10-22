@@ -1,18 +1,20 @@
 # PicORM a lightweight ORM.
----
-PicORM will help you to map your database rows into PHP object and create relations between them. 
+PicORM will help you to map your MySQL database rows into PHP object and create relations between them.
+PicORM is an Active Record pattern implementation easy to use and install.
+
+### Roadmap 0.0.3
+- refactoring
+- add Collections
+- add Tests
+- add QueryBuilder
 
 
 ## Install
----
 ### From composer
 
-Open terminal, and change directory to your project root folder
-Run this command to get the latest Composer version
+Install composer in your www folder with ``curl -sS https://getcomposer.org/installer | php``
 
-``curl -sS https://getcomposer.org/installer | php``
-
-Create a composer.json file with
+Create a ``composer.json`` file with
 
 ```json
 {
@@ -21,13 +23,12 @@ Create a composer.json file with
     }
 }
 ```
-Install PicORM with
-
-``php composer.phar install``
+Install PicORM with ``php composer.phar install``
 
 
 ### From source
 Clone ``https://github.com/iNem0o/PicORM`` repository and include ``PicORM`` autoload with
+
 ```php require('path/to/PicORM/src/autoload.inc.php'); ```
 
 ## Load and configure PicORM
@@ -42,7 +43,6 @@ Before using ``PicORM`` you have to configure it.
 
 
 ## Entity
----
 ### Implements an Entity
 
 First you have to create a table, which your entity will be mapped to
@@ -114,8 +114,14 @@ and then, add one public property by table field with ``public $fieldName``
 	$brand -> delete();
 ```
 
+## Relations between entities
+### OneToOne
+
+### OneToMany
+
+### ManyToMany
+
 ## Using find() or findOne() $where and $order parameters
----
 **$where** parameter is data for building a WHERE mysql clause
 
 ```php
@@ -146,8 +152,8 @@ and then, add one public property by table field with ``public $fieldName``
 ```
 
 ## Collections
-Collections in PicORM are created by ``find()`` method.
-When you have a fresh EntityCollection instance, data is not fetched yet. Fetching is done only when you try to access data with one of these methods
+Collections in PicORM are created by ``::find()`` method, accessible statically on each ``\PicORM\Entity`` subclass.
+When you have a fresh EntityCollection instance, data is not fetched yet. Fetching is done only when you try to access data with one of these way
 
 ```php
 // php array access
@@ -166,14 +172,15 @@ When you have a fresh EntityCollection instance, data is not fetched yet. Fetchi
 	$collection->fetchCollection();
 ```
 
-An EntityCollection instance can interact with it entities and group SELECT and DELETE queries
+An EntityCollection instance can execute UPDATE and DELETE queries on the collection members before fetching data,
+this way using ``update()`` or ``delete()`` method produce only one MySQL query based on ``find()`` restriction parameters
 
 ```php
-// Delete (execute only one mysql query)
+// Delete all entities in collection
     $collection = Brand::find(array('noteBrand' => 10))
                         ->delete();
 
-// Update  (execute only one mysql query)
+// Update and set noteBrand = 5 to collection
     $collection = Brand::find(array('noteBrand' => array('IN(9,10,11)')))
                          ->update(array('noteBrand' => 5));
 						 
