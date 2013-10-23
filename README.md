@@ -132,10 +132,9 @@ and then, add one public property by table field with ``public $fieldName``
 					);
 
 // raw sql value (NOT prepared, beware of SQL injection)
-	$where = array('field' => array(
-									'field'    => array('IN (5,6,4)'),
-									'dateTime' => array('NOW()')
-									)
+	$where = array(
+					'field'    => array('IN (5,6,4)'),
+					'dateTime' => array('NOW()')
 					);
 ```
 	 
