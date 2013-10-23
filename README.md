@@ -57,11 +57,15 @@ Next create a class which extends ``\PicORM\Entity``
 You have to implements some static parameters to describe your MySQL table schema, if you forgot one of them, a ``\PicORM\Exception`` will remind you
 
 *Required*
+
 ``protected static $_tableName`` MySQL table name
+
 ``protected static $_primaryKey`` table primary key field name
+
 ``protected static $_tableFields`` array with all mysql table fields name without primary key
 
 *Optional*
+
 ``protected static $_databaseName`` name of the database if different from datasource main DB
 
 and then, add one public property by table field with ``public $fieldName``
