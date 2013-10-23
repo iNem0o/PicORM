@@ -1,16 +1,11 @@
-# PicORM a lightweight ORM.
+# PicORM a lightweight PHP ORM.
 PicORM will help you to map your MySQL database rows into PHP object and create relations between them.
-PicORM is an Active Record pattern implementation easy to use and install.
+PicORM is an Active Record pattern implementation easy to install and use.
 
-### Roadmap 0.0.3
-- refactoring
-- add Collections
-- add Tests
-- add QueryBuilder
+*Currently in beta version 0.0.3*
 
-
-## Install
-### From composer
+### Install
+**From composer**
 
 Install composer in your www folder with ``curl -sS https://getcomposer.org/installer | php``
 
@@ -26,14 +21,16 @@ Create a ``composer.json`` file with
 Install PicORM with ``php composer.phar install``
 
 
-### From source
+**From source**
 Clone ``https://github.com/iNem0o/PicORM`` repository and include ``PicORM`` autoload with
 
-```php require('path/to/PicORM/src/autoload.inc.php'); ```
+```php
+    require('path/to/PicORM/src/autoload.inc.php');
+```
 
-## Load and configure PicORM
+**Load and configure PicORM**
 Before using ``PicORM`` you have to configure it. 
-``datasource`` is the only required parameter and it have to be a PDO instance
+``datasource`` is the only required parameter and have to be a PDO instance
 
 ```php
 \PicORM\PicORM::configure(array(
@@ -43,7 +40,7 @@ Before using ``PicORM`` you have to configure it.
 
 
 ## Entity
-### Implements an Entity
+**Implements an Entity**
 
 First you have to create a table, which your entity will be mapped to
 
@@ -59,13 +56,17 @@ First you have to create a table, which your entity will be mapped to
 Next create a class which extends ``\PicORM\Entity``
 You have to implements some static parameters to describe your MySQL table schema, if you forgot one of them, a ``\PicORM\Exception`` will remind you
 
-  ``protected static $_tableName`` MySQL table name
-  ``protected static $_primaryKey`` table primary key field name
-  ``protected static $_tableFields`` array with all mysql table fields name without primary key
+&nbsp;&nbsp;Required
+&nbsp;&nbsp;&nbsp;&nbsp;``protected static $_tableName`` MySQL table name
+&nbsp;&nbsp;&nbsp;&nbsp;``protected static $_primaryKey`` table primary key field name
+&nbsp;&nbsp;&nbsp;&nbsp;``protected static $_tableFields`` array with all mysql table fields name without primary key
+
+&nbsp;&nbsp;Optional
+&nbsp;&nbsp;&nbsp;&nbsp;``protected static $_databaseName`` name of the database if different from datasource main DB
 
 and then, add one public property by table field with ``public $fieldName``
   
-  **Complete Brand entity code**
+**Brand entity declaration**
   
 ```php
     class Brand extends \PicORM\Entity
@@ -85,7 +86,7 @@ and then, add one public property by table field with ``public $fieldName``
     }
 ```
 
-### Create and save an Entity
+**Create and save**
 
 ```php
 // creating new entity
@@ -98,7 +99,7 @@ and then, add one public property by table field with ``public $fieldName``
 	$brand -> save();
 ```
 
-### Update and delete an Entity
+**Update and delete**
 
 ```php
 // Criteria with exact value (idBrand=10)
@@ -113,13 +114,6 @@ and then, add one public property by table field with ``public $fieldName``
 // save entity
 	$brand -> delete();
 ```
-
-## Relations between entities
-### OneToOne
-
-### OneToMany
-
-### ManyToMany
 
 ## Using find() or findOne() $where and $order parameters
 **$where** parameter is data for building a WHERE mysql clause
@@ -177,79 +171,161 @@ this way using ``update()`` or ``delete()`` method produce only one MySQL query 
 
 ```php
 // Delete all entities in collection
-    $collection = Brand::find(array('noteBrand' => 10))
-                        ->delete();
+    $collection = Brand::find(array('noteBrand' => 10)) -> delete();
 
 // Update and set noteBrand = 5 to collection
-    $collection = Brand::find(array('noteBrand' => array('IN(9,10,11)')))
-                         ->update(array('noteBrand' => 5));
+    $collection = Brand::find(array('noteBrand' => array('IN(9,10,11)'))) -> update(array('noteBrand' => 5));
 						 
 ```
 
+## Relations between entities
+Using relations will need you to add a property and a method to your entity subclass.
 
+``protected static $_relations = array();``  needed to be implemented to store entity relations
+``protected static function defineRelations() { }`` method to declare your relation
 
+using ``defineRelations()`` you can add 3 types of relation
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Code sample
--------------------
-
-
-### Select multiple entity
 ```php
-// Criteria with exact value (noteBrand=10)
-    $collection = Brand::find(array('noteBrand' => 10));
+/**
+ * Add a OneToOne relation
+ * @param $sourceField          - entity source field
+ * @param $classRelation        - relation entity classname
+ * @param $targetField          - related entity target field
+ * @param array $autoGetFields  - field to auto get from relation when loading entity
+ * @param string $aliasRelation - override relation auto naming className with an alias
+ *                                    (ex : for reflexive relation)
+ */
+protected static function addRelationOneToOne($sourceField, $classRelation, $targetField, $autoGetFields = array(), $aliasRelation = '')
 
-// Criteria with custom operator (noteBrand >= 10)
-    $collection = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)));
+/**
+ * Add a OneToMany relation
+ * @param $sourceField          - entity source field
+ * @param $classRelation        - relation entity classname
+ * @param $targetField          - related entity target field
+ * @param string $aliasRelation - override relation auto naming className with an alias
+ */
+protected static function addRelationOneToMany($sourceField, $classRelation, $targetField, $aliasRelation = '')
 
-// Criteria with Raw SQL
-    $collection = Brand::find(array('noteBrand' => array('IN(9,10,11)')));
-
-
-
-// raw mysql query finding
-    $result = Brand::findFromQuery("SELECT * FROM brands WHERE noteBrand = ?",array(10));
+/**
+ * Add a ManyToMany relation
+ * @param $sourceField           - entity source field
+ * @param $classRelation         - relation entity name
+ * @param $targetField           - related entity field
+ * @param $relationTable         - mysql table containing the two entities ID
+ * @param string $aliasRelation  - override relation auto naming className
+ */
+protected static function addRelationManyToMany($sourceField, $classRelation, $targetField, $relationTable, $aliasRelation = '')
 ```
 
-## Relations (php in 'examples/' for entity declaration)
+**Using relation**
+This example will use the following MySQL schema
 
-### 1-1 relation
+```sql
+CREATE TABLE `brands` (
+	`idBrand` int(11) NOT NULL AUTO_INCREMENT,
+	`nameBrand` varchar(100) NOT NULL,
+	`noteBrand` float DEFAULT 0,
+PRIMARY KEY (`idBrand`)
+) ENGINE=MyISAM;
+
+CREATE TABLE  `cars` (
+	`idCar` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`idBrand` INT NOT NULL,
+	`nameCar` VARCHAR(100) NOT NULL
+) ENGINE = MYISAM ;
+
+CREATE TABLE `car_have_tag` (
+	`idCar` INT NOT NULL,
+	`idTag` INT NOT NULL,
+PRIMARY KEY (`idCar`,`idTag`)
+) ENGINE = MYISAM ;
+
+CREATE TABLE `tags` (
+	`idTag` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`libTag` VARCHAR(255) NOT NULL
+) ENGINE = MYISAM ;
+```
+
+First you have declare your 3 entities and their relations
+
 ```php
+class Brand extends Entity
+{
+	protected static $_tableName = 'brands';
+	protected static $_primaryKey = "idBrand";
+	protected static $_relations = array();
+
+	protected static $_tableFields = array(
+		'nameBrand',
+		'noteBrand'
+	);
+
+	public $idBrand;
+	public $nameBrand;
+	public $noteBrand;
+
+	protected static function defineRelations()
+	{
+		// create a relation between Brand and Car
+		// based on this.idBrand = Car.idBrand
+		self::addRelationOneToMany('idBrand', 'Car', 'idBrand');
+	}
+}
+
+class Car extends Entity
+{
+	protected static $_tableName = 'cars';
+	protected static $_primaryKey = "idCar";
+	protected static $_relations = array();
+
+	protected static $_tableFields = array(
+		'idBrand',
+		'nameCar'
+	);
+
+	public $idCar;
+	public $idBrand;
+	public $nameCar = '';
+
+	protected static function defineRelations()
+	{
+		// create a relation between Car and Brand
+		// based on this.idBrand = Brand.idBrand
+		// nameBrand is added to autoget fields which is automatically fetched
+		// when entity is loaded
+		self::addRelationOneToOne('idBrand', 'Brand', 'idBrand', 'nameBrand');
+
+		// create a relation between Car and Tag using a relation table car_have_tag
+		self::addRelationManyToMany("idCar","Tag","idTag","car_have_tag");
+	}
+}
+
+class Tag extends Entity
+{
+	protected static $_tableName = 'tags';
+	protected static $_primaryKey = "idTag";
+	protected static $_relations = array();
+
+	protected static $_tableFields = array(
+		'libTag',
+	);
+
+	public $idTag;
+	public $libTag = '';
+
+	protected static function defineRelations()
+	{
+		// create a relation between Tag and Car using a relation table car_have_tag
+		self::addRelationManyToMany('idTag','Car','idCar','car_have_tag');
+	}
+}
+```
+
+Now you can start to create and manipulates related entities
+
+```php
+
 // creating a brand
     $brand = new Brand();
     $brand -> nameBrand = "Peugeot";
@@ -262,27 +338,37 @@ Code sample
 // setting car's brand
     $car -> setBrand($brand);
 
-// getting car's brand
-    $car -> getBrand($brand);
-
+// other way to setting car's brand
+    $car -> idBrand = $brand -> idBrand;
     $car -> save();
+
+// if we look for our car
+    $car = Car :: findOne(array('nameCar' => '205 GTi'));
+	
+// we can get brand of the car
+    $car -> getBrand();
+
+// or we can access brand name directly because it has been added to relation auto get fields
+    $car -> nameBrand;
+		
 ```
 
-### 1-N relation
-```php
+As you declare a one to many relation from Brand to Car you can also using setter and getter on the other side
+
+```php	
 // get all cars from brand
-    $brand -> getCar()
+// method return instance of EntityCollection
+    foreach($brand -> getCar() as $cars)
+
+// get all cars from brand with custom criteria
+// parameters are same as find() method
+// method return instance of EntityCollection
+    $brand -> getCar($where,$order,$limitStart,$limitStop);
 ```
 
-### N-N relation
-```php
-// creating a car
-// and affecting $brand to them
-    $car = new Car();
-    $car->nameCar = "205 GTi";
-    $car->setBrand($brand);
-    $car->save();
+Many to many relations are easy to use too
 
+```php	
 // creating some tags
     $tag = new Tag();
     $tag -> libTag = 'tag 1';
@@ -299,40 +385,31 @@ Code sample
 // setting car's tags
     $car -> setTag(array($tag,$tag2,$tag3));
 
-// getting car's tags
-	$car -> getTag();
+// getting car's tags (return instance of EntityCollection)
+    $car -> getTag();
+
+// getting car's tags with custom criteria
+// parameters are same as find() method
+// method return instance of EntityCollection
+    $car -> getTag($where,$order,$limitStart,$limitStop);
 
 // unset relation between $car and $tag2
     $car -> unsetTag($tag2);
-
-// creating some cars
-	$car = new Car();
-	$car->nameCar = "205 GTi";
-	$car->setBrand($brand);
-	$car->save();
-
-	$car2 = new Car();
-	$car2->nameCar = "206";
-	$car2->setBrand($brand);
-	$car2->save();
-
-	$car3 = new Car();
-	$car3->nameCar = "207";
-	$car3->setBrand($brand);
-	$car3->save();
-
-
-// affecting new cars to $tag2
-	$tag2 -> setCar(array($car,$car2,$car3));
-
 ```
+
 
 Changelog
 ---------
-#### 0.0.1
-- initial release
+#### UNSTABLE 0.0.1
+- Initial release
 
-#### 0.0.2
-- bugfixes
-- add namespace support and pdo fetch mode selection
-- add transaction support
+#### UNSTABLE 0.0.2
+- Bugfixes
+- Add namespace support and pdo fetch mode selection
+- Add transaction support
+
+#### BETA 0.0.3
+- Bugfixes
+- Refactoring MySQL
+- Collections
+- Tests
