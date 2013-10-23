@@ -79,6 +79,8 @@ try {
             // nameBrand is added to autoget fields which is automatically fetched
             // when entity is loaded
             self::addRelationOneToOne('idBrand', 'Brand', 'idBrand', 'nameBrand');
+
+            // create a relation between Car and Tag using a relation table car_have_tag
             self::addRelationManyToMany("idCar","Tag","idTag","car_have_tag");
         }
     }
@@ -98,6 +100,7 @@ try {
 
         protected static function defineRelations()
         {
+            // create a relation between Tag and Car using a relation table car_have_tag
             self::addRelationManyToMany('idTag','Car','idCar','car_have_tag');
         }
     }
