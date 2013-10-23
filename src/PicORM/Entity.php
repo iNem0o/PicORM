@@ -76,6 +76,7 @@ abstract class Entity
      */
     protected static function defineRelations()
     {
+        if(static::$_relations === null) throw new Exception(get_class(new static()).'::$_tableName must be implemented');
     }
 
     /**
@@ -88,12 +89,13 @@ abstract class Entity
         if (!isset(self::$validationStatus[static::$_databaseName . static::$_tableName])) {
 
             $subClassName = get_class(new static());
+            // check entity OOP static structure is OK
             if (static::$_tableName === null) throw new Exception($subClassName . '::$_tableName must be implemented');
             if (static::$_primaryKey === null) throw new Exception($subClassName . '::$_primaryKey must be implemented');
             if (static::$_tableFields === null) throw new Exception($subClassName . '::$_tableFields must be implemented');
 
-            // entity OOP structure is OK to declare relationship
-            static::defineRelations();
+            if (static::$_relations !== null)
+                static::defineRelations();
 
             self::$validationStatus[static::$_databaseName . static::$_tableName] = true;
         }
@@ -175,6 +177,7 @@ abstract class Entity
      * Unset a relation value from magic setter
      * @param array $configRelation
      * @param $callArgs
+     * @todo unset other relations type
      * @return bool
      */
     private function _unsetRelation(array $configRelation, $callArgs)
@@ -277,7 +280,7 @@ abstract class Entity
         $where = $order = array();
         $limitStart = $limitEnd = null;
 
-        // extract criteria from args
+        // extract find criteria from args
         if (isset($callArgs[0]) && is_array($callArgs[0])) $where = $callArgs[0];
         if (isset($callArgs[1]) && is_array($callArgs[1])) $order = $callArgs[1];
         if (isset($callArgs[2]) && is_array($callArgs[2])) $limitStart = $callArgs[2];
@@ -311,7 +314,7 @@ abstract class Entity
                     ->innerJoin($configRelation['relationTable'], $configRelation['relationTable'] . "." . $configRelation['targetField'] . " = t." . $configRelation['targetField']);
 
                 // check one to one relation with auto get fields
-                // and append necessary fields to select
+                // and append needed fields to select
                 $nbRelation = 0;
                 foreach ($classRelation::$_relations as $uneRelation) {
                     if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && count($uneRelation['autoGetFields']) > 0) {
@@ -353,11 +356,11 @@ abstract class Entity
 
     /**
      * Add a OneToOne relation
-     * @param $sourceField - entity source field
-     * @param $classRelation - relation entity name
-     * @param $targetField - related entity target field
-     * @param array $autoGetFields - field to auto get from relation when loading entity
-     * @param string $aliasRelation - override relation auto naming with className with an alias
+     * @param $sourceField          - entity source field
+     * @param $classRelation        - relation entity classname
+     * @param $targetField          - related entity target field
+     * @param array $autoGetFields  - field to auto get from relation when loading entity
+     * @param string $aliasRelation - override relation auto naming className with an alias
      *                                    (ex : for reflexive relation)
      * @throws Exception
      */
@@ -382,10 +385,10 @@ abstract class Entity
 
     /**
      * Add a OneToMany relation
-     * @param $sourceField
-     * @param $classRelation
-     * @param $targetField
-     * @param string $aliasRelation
+     * @param $sourceField          - entity source field
+     * @param $classRelation        - relation entity classname
+     * @param $targetField          - related entity target field
+     * @param string $aliasRelation - override relation auto naming className with an alias
      * @throws Exception
      */
     protected static function addRelationOneToMany($sourceField, $classRelation, $targetField, $aliasRelation = '')
@@ -406,11 +409,11 @@ abstract class Entity
 
     /**
      * Add a ManyToMany relation
-     * @param $sourceField
-     * @param $classRelation
-     * @param $targetField
-     * @param $relationTable
-     * @param string $aliasRelation
+     * @param $sourceField           - entity source field
+     * @param $classRelation         - relation entity name
+     * @param $targetField           - related entity field
+     * @param $relationTable         - mysql table containing the two entities ID
+     * @param string $aliasRelation  - override relation auto naming className
      * @throws Exception
      */
     protected static function addRelationManyToMany($sourceField, $classRelation, $targetField, $relationTable, $aliasRelation = '')
