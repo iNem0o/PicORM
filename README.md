@@ -56,13 +56,13 @@ First you have to create a table, which your entity will be mapped to
 Next create a class which extends ``\PicORM\Entity``
 You have to implements some static parameters to describe your MySQL table schema, if you forgot one of them, a ``\PicORM\Exception`` will remind you
 
-&nbsp;&nbsp;Required
-&nbsp;&nbsp;&nbsp;&nbsp;``protected static $_tableName`` MySQL table name
-&nbsp;&nbsp;&nbsp;&nbsp;``protected static $_primaryKey`` table primary key field name
-&nbsp;&nbsp;&nbsp;&nbsp;``protected static $_tableFields`` array with all mysql table fields name without primary key
+*Required*
+``protected static $_tableName`` MySQL table name
+``protected static $_primaryKey`` table primary key field name
+``protected static $_tableFields`` array with all mysql table fields name without primary key
 
-&nbsp;&nbsp;Optional
-&nbsp;&nbsp;&nbsp;&nbsp;``protected static $_databaseName`` name of the database if different from datasource main DB
+*Optional*
+``protected static $_databaseName`` name of the database if different from datasource main DB
 
 and then, add one public property by table field with ``public $fieldName``
   
@@ -219,6 +219,7 @@ protected static function addRelationManyToMany($sourceField, $classRelation, $t
 ```
 
 **Using relation**
+
 This example will use the following MySQL schema
 
 ```sql
@@ -413,3 +414,4 @@ Changelog
 - Refactoring MySQL
 - Collections
 - Tests
+
