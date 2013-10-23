@@ -64,38 +64,41 @@ try {
     $result = Brand::find();
 
     // select one brand
-    $result = Brand::findOne();
+    $result = Brand::findOne(array('idBrand' => 1));
+
+    // select one brand with order by
+    $result = Brand::findOne(array('noteBrand' => 10),array('nameBrand' => 'ASC'));
 
 
     // Criteria with exact value (noteBrand=10)
-    $result = Brand::find(array('noteBrand' => 10));
+    $collection = Brand::find(array('noteBrand' => 10));
 
     // Criteria with custom operator (noteBrand >= 10)
-    $result = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)));
+    $collection = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)));
 
     // Criteria with Raw SQL
-    $result = Brand::find(array('noteBrand' => array('IN(9,10,11)')));
+    $collection = Brand::find(array('noteBrand' => array('IN(9,10,11)')));
 
     // Criteria with custom operator (noteBrand >= 10)
     // order by field
-    $result = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)),array('noteBrand' => 'ASC'));
+    $collection = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)),array('noteBrand' => 'ASC'));
 
     // Criteria with custom operator (noteBrand >= 10)
     // random order
-    $result = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)),array('RAND()' => null));
+    $collection = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)),array('RAND()' => null));
 
     // Criteria with custom operator (noteBrand >= 10)
     // order by field (noteBrand ASC)
     // return subset of first 10 elements (LIMIT 10)
-    $result = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)),array('noteBrand' => 'ASC'),10);
+    $collection = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)),array('noteBrand' => 'ASC'),10);
 
     // Criteria with custom operator (noteBrand >= 10)
     // order by field (noteBrand ASC)
     // return subset of 10 elements starting from 20th position (LIMIT 10,20)
-    $result = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)),array('noteBrand' => 'ASC'),10,20);
+    $collection = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)),array('noteBrand' => 'ASC'),10,20);
 
     // raw mysql query
-    // return an entity collection
+    // return an entity array
     $result = Brand::findQuery("SELECT * FROM brands WHERE noteBrand = ?",array(10));
 
 } catch (PicORM\Exception $e) {

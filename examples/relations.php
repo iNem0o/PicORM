@@ -118,6 +118,23 @@ try {
     $car->setBrand($brand);
     $car->save();
 
+// setting car's brand
+    $car -> setBrand($brand);
+
+// other way to setting car's brand
+    $car -> idBrand = $brand -> idBrand;
+    $car -> save();
+
+// we look for our car
+    $car = Car :: findOne(array('nameCar' => '205 GTi'));
+// get brand of the car
+    $car -> getBrand();
+
+// you can access brand name directy because it has been added to relation autoget fields
+    $car -> nameBrand;
+
+
+
 // creating some tags
     $tag = new Tag();
     $tag -> libTag = 'tag 1';
