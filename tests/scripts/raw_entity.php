@@ -3,6 +3,7 @@ class BrandEntity extends \PicOrm\Entity
 {
     protected static $_tableName = 'brands';
     protected static $_primaryKey = "idBrand";
+    protected static $_relations = array();
 
     protected static $_tableFields = array(
         'nameBrand',
