@@ -118,22 +118,22 @@ Every subclass of Entity inherit of static methods ``find()`` and ``findOne()``.
 Theses methods are used to create entities from database rows.
 
 ```php
-   /**
-     * Find one entity from criteria, allowing to order
-     * @param array $where - associative
-     * @param array $order - associative array
-     */
-    public static function findOne($where = array(), $order = array())
+/**
+ * Find one entity from criteria, allowing to order
+ * @param array $where - associative
+ * @param array $order - associative array
+ */
+public static function findOne($where = array(), $order = array())
 
-    /**
-     * Return EntityCollection instance from criteria, allowing to order and limit result
-     * @param array $where - associative array
-     * @param array $order - associative array
-     * @param int $limitStart - int
-     * @param int $limitEnd - int
-     * @return EntityCollection
-     */
-    public static function find($where = array(), $order = array(), $limitStart = null, $limitEnd = null)
+/**
+ * Return EntityCollection instance from criteria, allowing to order and limit result
+ * @param array $where - associative array
+ * @param array $order - associative array
+ * @param int $limitStart - int
+ * @param int $limitEnd - int
+ * @return EntityCollection
+ */
+public static function find($where = array(), $order = array(), $limitStart = null, $limitEnd = null)
 ```
 
 
