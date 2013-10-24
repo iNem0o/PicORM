@@ -1,5 +1,5 @@
 # PicORM a lightweight PHP ORM.
-PicORM will help you to map your MySQL database rows into PHP object and create relations between them.
+PicORM will help you to map your MySQL database rows into PHP object and create relations between them.<br>
 PicORM is an Active Record pattern implementation easy to install and use.
 
 *Currently in beta version 0.0.3*
@@ -39,7 +39,7 @@ Before using ``PicORM`` you have to configure it.
 
 
 ## Entity
-**Implements an Entity**
+**Implements an Entity**<br>
 First you have to create a table, which your entity will be mapped to
 
 ```sql
@@ -51,19 +51,15 @@ First you have to create a table, which your entity will be mapped to
     ) ENGINE=MyISAM;
 ```
 
-Next create a class which extends ``\PicORM\Entity``
+Next create a class which extends ``\PicORM\Entity``<br>
 You have to implements some static parameters to describe your MySQL table schema, if you forgot one of them, a ``\PicORM\Exception`` will remind you
 
-*Required*
-
-``protected static $_tableName`` MySQL table name
-
-``protected static $_primaryKey`` table primary key field name
-
+*Required*<br>
+``protected static $_tableName`` MySQL table name<br>
+``protected static $_primaryKey`` table primary key field name<br>
 ``protected static $_tableFields`` array with all mysql table fields name without primary key
 
-*Optional*
-
+*Optional*<br>
 ``protected static $_databaseName`` name of the database if different from datasource main DB
 
 and then, add one public property by table field with ``public $fieldName``
@@ -117,8 +113,32 @@ and then, add one public property by table field with ``public $fieldName``
 	$brand -> delete();
 ```
 
-## Using find() or findOne() $where and $order parameters
-**$where** parameter is data for building a WHERE mysql clause
+## find() and findOne()
+Every subclass of Entity inherit of static methods ``find()`` and ``findOne()``.<br>
+Theses methods are used to create entities from database rows.
+
+```php
+   /**
+     * Find one entity from criteria, allowing to order
+     * @param array $where - associative
+     * @param array $order - associative array
+     */
+    public static function findOne($where = array(), $order = array())
+
+    /**
+     * Return EntityCollection instance from criteria, allowing to order and limit result
+     * @param array $where - associative array
+     * @param array $order - associative array
+     * @param int $limitStart - int
+     * @param int $limitEnd - int
+     * @return EntityCollection
+     */
+    public static function find($where = array(), $order = array(), $limitStart = null, $limitEnd = null)
+```
+
+
+**How to use $where parameter** <br>
+this parameter is data for building a WHERE mysql clause
 
 ```php
 // simple criteria
@@ -136,7 +156,8 @@ and then, add one public property by table field with ``public $fieldName``
 					);
 ```
 	 
-**$order** parameter is data for building an ORDER mysql clause
+**How to use $order parameter**<br>
+This parameter is data for building an ORDER mysql clause
 
 ```php
      $order = array(
@@ -147,7 +168,7 @@ and then, add one public property by table field with ``public $fieldName``
 ```
 
 ## Collections
-Collections in PicORM are created by ``::find()`` method, accessible statically on each ``\PicORM\Entity`` subclass.
+Collections in PicORM are created by ``::find()`` method, accessible statically on each ``\PicORM\Entity`` subclass.<br>
 When you have a fresh EntityCollection instance, data is not fetched yet. Fetching is done only when you try to access data with one of these way
 
 ```php
@@ -168,24 +189,26 @@ When you have a fresh EntityCollection instance, data is not fetched yet. Fetchi
 ```
 
 An EntityCollection instance can execute UPDATE and DELETE queries on the collection members before fetching data,
-this way using ``update()`` or ``delete()`` method produce only one MySQL query based on ``find()`` restriction parameters
+this way using ``update()`` or ``delete()`` method produce only one MySQL query based on ``find()`` restriction parameters.
 
 ```php
 // Delete all entities in collection
-    $collection = Brand::find(array('noteBrand' => 10)) -> delete();
+    $collection = Brand::find(array('noteBrand' => 10))
+                      -> delete();
 
 // Update and set noteBrand = 5 to collection
-    $collection = Brand::find(array('noteBrand' => array('IN(9,10,11)'))) -> update(array('noteBrand' => 5));
+    $collection = Brand::find(array('noteBrand' => array('IN(9,10,11)')))
+                      -> update(array('noteBrand' => 5));
 						 
 ```
 
 ## Relations between entities
-Using relations will need you to add a property and a method to your entity subclass.
-
-``protected static $_relations = array();``  needed to be implemented to store entity relations
+Using relations will need you to add a property and a method to your entity subclass.<br>
+``protected static $_relations = array();``  needed to be implemented to store entity relations<br>
 ``protected static function defineRelations() { }`` method to declare your relation
 
-using ``defineRelations()`` you can add 3 types of relation
+overriding ``defineRelations()`` in your subclass allow you to declare your entity specific relations
+using one of the 3 next methods.
 
 ```php
 /**
@@ -193,7 +216,7 @@ using ``defineRelations()`` you can add 3 types of relation
  * @param $sourceField          - entity source field
  * @param $classRelation        - relation entity classname
  * @param $targetField          - related entity target field
- * @param array $autoGetFields  - field to auto get from relation when loading entity
+ * @param array $autoGetFields  - fields to auto get from relation when loading entity
  * @param string $aliasRelation - override relation auto naming className with an alias
  *                                    (ex : for reflexive relation)
  */
@@ -249,7 +272,7 @@ CREATE TABLE `tags` (
 ) ENGINE = MYISAM ;
 ```
 
-First you have declare your 3 entities and their relations
+First you have to declare your 3 entities and their relations
 
 ```php
 class Brand extends Entity
