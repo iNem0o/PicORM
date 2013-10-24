@@ -5,8 +5,7 @@ PicORM is an Active Record pattern implementation easy to install and use.
 *Currently in beta version 0.0.3*
 
 ### Install
-**From composer**
-
+**From composer**<br>
 Install composer in your www folder with ``curl -sS https://getcomposer.org/installer | php``
 
 Create a ``composer.json`` file with
@@ -21,14 +20,14 @@ Create a ``composer.json`` file with
 Install PicORM with ``php composer.phar install``
 
 
-**From source**
+**From source**<br>
 Clone ``https://github.com/iNem0o/PicORM`` repository and include ``PicORM`` autoload with
 
 ```php
     require('path/to/PicORM/src/autoload.inc.php');
 ```
 
-**Load and configure PicORM**
+**Load and configure PicORM**<br>
 Before using ``PicORM`` you have to configure it. 
 ``datasource`` is the only required parameter and have to be a PDO instance
 
@@ -41,7 +40,6 @@ Before using ``PicORM`` you have to configure it.
 
 ## Entity
 **Implements an Entity**
-
 First you have to create a table, which your entity will be mapped to
 
 ```sql
