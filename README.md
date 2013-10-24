@@ -133,7 +133,7 @@ public static function findOne($where = array(), $order = array())
  * @param int $limitEnd - int
  * @return EntityCollection
  */
-public static function find($where = array(), $order = array(), $limitStart = null, $limitEnd = null)
+public static function find($where = array(),$order = array(), $limitStart = null, $limitEnd = null)
 ```
 
 
