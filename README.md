@@ -114,7 +114,7 @@ and then, add one public property by table field with ``public $fieldName``
 ```
 
 ## find() and findOne()
-Every subclass of Entity inherit of static methods ``find()`` and ``findOne()``.<br>
+Every subclass of ``Entity`` inherit of static methods ``find()`` and ``findOne()``.<br>
 Theses methods are used to create entities from database rows.
 
 ```php
@@ -168,8 +168,8 @@ This parameter is data for building an ORDER mysql clause
 ```
 
 ## Collections
-Collections in PicORM are created by ``::find()`` method, accessible statically on each ``\PicORM\Entity`` subclass.<br>
-When you have a fresh EntityCollection instance, data is not fetched yet. Fetching is done only when you try to access data with one of these way
+Collections in PicORM are created by ``find()`` method, accessible statically on each ``\PicORM\Entity`` subclass.<br>
+Once you have a fresh ``EntityCollection`` instance, data is not fetched yet. Fetching is done only when you try to access data using one of these ways
 
 ```php
 // php array access
@@ -188,7 +188,7 @@ When you have a fresh EntityCollection instance, data is not fetched yet. Fetchi
 	$collection->fetchCollection();
 ```
 
-An EntityCollection instance can execute UPDATE and DELETE queries on the collection members before fetching data,
+An ``EntityCollection`` instance can execute UPDATE and DELETE queries on the collection members before fetching data,
 this way using ``update()`` or ``delete()`` method produce only one MySQL query based on ``find()`` restriction parameters.
 
 ```php
@@ -205,7 +205,7 @@ this way using ``update()`` or ``delete()`` method produce only one MySQL query 
 ## Relations between entities
 Using relations will need you to add a property and a method to your entity subclass.<br>
 ``protected static $_relations = array();``  needed to be implemented to store entity relations<br>
-``protected static function defineRelations() { }`` method to declare your relation
+``protected static function defineRelations() { }`` method to declare your relations
 
 overriding ``defineRelations()`` in your subclass allow you to declare your entity specific relations
 using one of the 3 next methods.
