@@ -1,5 +1,5 @@
 <?php
-class BrandEntity extends \PicOrm\Entity
+class BrandEntity extends \PicOrm\Model
 {
     protected static $_tableName = 'brands';
     protected static $_primaryKey = "idBrand";
@@ -26,7 +26,7 @@ class Brand extends BrandEntity {
 
 }
 
-class Tag extends \PicOrm\Entity
+class Tag extends \PicOrm\Model
 {
     protected static $_tableName = 'tags';
     protected static $_primaryKey = "idTag";
@@ -45,7 +45,7 @@ class Tag extends \PicOrm\Entity
     }
 }
 
-class Car extends \PicOrm\Entity
+class Car extends \PicOrm\Model
 {
     protected static $_tableName = 'cars';
     protected static $_primaryKey = "idCar";

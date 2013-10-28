@@ -366,10 +366,14 @@ abstract class Entity
      */
     protected static function addRelationOneToOne($sourceField, $classRelation, $targetField, $autoGetFields = array(), $aliasRelation = '')
     {
-        if (!class_exists($classRelation) || !new $classRelation() instanceof Entity)
-            throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of \PicORM\Entity");
+        if(!is_string($sourceField)) throw new Exception('$sourceField have to be a string');
+        if(!is_string($classRelation)) throw new Exception('$classRelation have to be a string');
+        if(!is_string($targetField)) throw new Exception('$targetField have to be a string');
 
-        if (!is_array($autoGetFields) && is_string($autoGetFields)) $autoGetFields = array($autoGetFields);
+        if (!class_exists($classRelation) || !new $classRelation() instanceof Entity)
+        throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of \PicORM\Entity");
+
+        if (!is_array($autoGetFields)) $autoGetFields = array($autoGetFields);
 
         $idRelation = self :: formatClassnameToRelationName($classRelation);
         if (!empty($aliasRelation)) $idRelation = $aliasRelation;

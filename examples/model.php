@@ -1,10 +1,10 @@
 <?php
 require('../src/autoload.inc.php');
 
-use PicORM\Entity;
+use PicORM\Model;
 
 try {
-    Entity::configure(array(
+    Model::configure(array(
         'datasource' => new PDO('mysql:dbname=DBNAME;host=HOST', 'DBLOGIN', 'DBPASSWD')
     ));
 
@@ -19,7 +19,7 @@ try {
 
 */
 
-    class Brand extends \PicORM\Entity
+    class Brand extends \PicORM\Model
     {
         protected static $_tableName = 'brands';
         protected static $_primaryKey = "idBrand";
@@ -98,7 +98,7 @@ try {
     $collection = Brand::find(array('noteBrand' => array('operator' => '>=','value' => 10)),array('noteBrand' => 'ASC'),10,20);
 
     // raw mysql query
-    // return an entity array
+    // return a model array
     $result = Brand::findQuery("SELECT * FROM brands WHERE noteBrand = ?",array(10));
 
 } catch (PicORM\Exception $e) {

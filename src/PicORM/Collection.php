@@ -33,7 +33,7 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
     protected $_dataSource;
 
     /**
-     * Entity class name
+     * Model class name
      * @var
      */
     private $_className;
