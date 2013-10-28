@@ -44,7 +44,7 @@ class PicORM
             throw new Exception("PDO Datasource is required!");
 
         static::$_dataSource = $configuration['datasource'];
-        Entity::setDataSource(static::$_dataSource);
+        Model::setDataSource(static::$_dataSource);
 
         static::$_configuration = $configuration;
     }

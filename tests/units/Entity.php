@@ -2,19 +2,19 @@
 namespace PicORM\tests\units;
 use \atoum;
 
-class Entity extends atoum {
+class Model extends atoum {
 
     public static function cleanTables() {
-        \PicORM\Entity::getDataSource()->query('TRUNCATE brands');
-        \PicORM\Entity::getDataSource()->query('TRUNCATE cars');
-        \PicORM\Entity::getDataSource()->query('TRUNCATE car_have_tag');
-        \PicORM\Entity::getDataSource()->query('TRUNCATE tags');
+        \PicORM\Model::getDataSource()->query('TRUNCATE brands');
+        \PicORM\Model::getDataSource()->query('TRUNCATE cars');
+        \PicORM\Model::getDataSource()->query('TRUNCATE car_have_tag');
+        \PicORM\Model::getDataSource()->query('TRUNCATE tags');
     }
 
     //// DATA PROVIDERS /////
-    public static function createAndSaveRawEntity() {
+    public static function createAndSaveRawModel() {
         self::cleanTables();
-        include_once __DIR__ . '/../scripts/raw_entity.php';
+        include_once __DIR__ . '/../scripts/raw_models.php';
         $testBrand = new \Brand();
         $testBrand -> nameBrand = 'Acme';
         $testBrand -> noteBrand = 10;
@@ -22,9 +22,9 @@ class Entity extends atoum {
         return array($testBrand);
     }
 
-    public static function createAndSaveRawEntityWithOneToOneRelation() {
+    public static function createAndSaveRawModelWithOneToOneRelation() {
         self::cleanTables();
-        include_once __DIR__ . '/../scripts/raw_entity.php';
+        include_once __DIR__ . '/../scripts/raw_models.php';
 
         $testBrand = new \Brand();
         $testBrand -> nameBrand = 'Acme';
@@ -32,7 +32,7 @@ class Entity extends atoum {
         $testBrand -> save();
 
         $car = new \Car();
-        $car -> nameCar = 'AcmeCarcreateAndSaveRawEntityWithOneToOneRelation';
+        $car -> nameCar = 'AcmeCarcreateAndSaveRawModelWithOneToOneRelation';
         $car -> noteCar = '10';
         $car -> setBrand($testBrand);
         $car -> save();
@@ -41,9 +41,9 @@ class Entity extends atoum {
             array($testBrand,$car)
         );
     }
-    public static function createAndSaveRawEntityWithManyToManyRelation() {
+    public static function createAndSaveRawModelWithManyToManyRelation() {
         self::cleanTables();
-        include_once __DIR__ . '/../scripts/raw_entity.php';
+        include_once __DIR__ . '/../scripts/raw_models.php';
 
         $car = new \Car();
         $car -> nameCar = 'AcmeCar';
@@ -73,9 +73,9 @@ class Entity extends atoum {
         );
     }
 
-    public static function createAndSaveRawEntityWithOneToManyRelation() {
+    public static function createAndSaveRawModelWithOneToManyRelation() {
         self::cleanTables();
-        include_once __DIR__ . '/../scripts/raw_entity.php';
+        include_once __DIR__ . '/../scripts/raw_models.php';
 
         $testBrand = new \Brand();
         $testBrand -> nameBrand = 'AcmeMult';
@@ -106,18 +106,18 @@ class Entity extends atoum {
     //// END DATA PROVIDERS /////
 
     /**
-     * @dataProvider createAndSaveRawEntityWithManyToManyRelation
+     * @dataProvider createAndSaveRawModelWithManyToManyRelation
      */
     public function testManyToManyRelationCreation($car,$tags) {
         // create test
-        $req = \PicORM\Entity::getDataSource()->prepare('SELECT count(*) as nb FROM car_have_tag WHERE idCar = ?');
+        $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM car_have_tag WHERE idCar = ?');
         $req -> execute(array($car -> idCar));
         $res = $req->fetch(\PDO::FETCH_ASSOC);
         $this -> variable($res['nb'])->isEqualTo("3");
     }
 
     /**
-     * @dataProvider createAndSaveRawEntityWithManyToManyRelation
+     * @dataProvider createAndSaveRawModelWithManyToManyRelation
      */
     public function testManyToManyRelation($car,$tags) {
 
@@ -131,18 +131,18 @@ class Entity extends atoum {
     }
 
     /**
-     * @dataProvider createAndSaveRawEntityWithOneToManyRelation
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testOneToManyRelationCreation($testBrand,$testCars) {
 
-        $req = \PicORM\Entity::getDataSource()->prepare('SELECT count(*) as nb FROM cars WHERE idBrand = ?');
+        $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM cars WHERE idBrand = ?');
         $req -> execute(array($testBrand -> idBrand));
         $res = $req->fetch(\PDO::FETCH_ASSOC);
         $this -> variable($res['nb'])->isEqualTo('3');
     }
 
     /**
-     * @dataProvider createAndSaveRawEntityWithOneToManyRelation
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testOneToManyRelation($testBrand,$testCars) {
 
@@ -153,18 +153,18 @@ class Entity extends atoum {
     }
 
     /**
-     * @dataProvider createAndSaveRawEntityWithOneToOneRelation
+     * @dataProvider createAndSaveRawModelWithOneToOneRelation
      */
     public function testOneToOneRelationCreation($testBrand,$car) {
         // test insert
-        $req = \PicORM\Entity::getDataSource()->prepare('SELECT count(*) as nb FROM cars WHERE idBrand = ? AND idCar = ?');
+        $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM cars WHERE idBrand = ? AND idCar = ?');
         $req -> execute(array($testBrand -> idBrand, $car -> idCar));
         $res = $req->fetch(\PDO::FETCH_ASSOC);
         $this -> variable($res['nb'])->isEqualTo('1');
     }
 
     /**
-     * @dataProvider createAndSaveRawEntityWithOneToOneRelation
+     * @dataProvider createAndSaveRawModelWithOneToOneRelation
      */
     public function testOneToOneRelation($testBrand,$car) {
         // test get relation
@@ -177,13 +177,13 @@ class Entity extends atoum {
     }
 
     /**
-     * @dataProvider createAndSaveRawEntity
+     * @dataProvider createAndSaveRawModel
      */
-    public function testDeleteEntity($testBrand) {
+    public function testDeleteModel($testBrand) {
         $idBrand = $testBrand -> idBrand;
         $testBrand -> delete();
 
-        $req = \PicORM\Entity::getDataSource()->prepare('SELECT count(*) as nb FROM brands WHERE idBrand = ?');
+        $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM brands WHERE idBrand = ?');
         $req -> execute(array($idBrand));
         $res = $req->fetch(\PDO::FETCH_ASSOC);
 
@@ -191,16 +191,16 @@ class Entity extends atoum {
     }
 
     /**
-     * @dataProvider createAndSaveRawEntity
+     * @dataProvider createAndSaveRawModel
      */
-    public function testUpdateEntity($testBrand) {
+    public function testUpdateModel($testBrand) {
 
         $idBrand = $testBrand -> idBrand;
         $testBrand -> nameBrand = 'NEWNAME!';
         $testBrand -> noteBrand = '5';
         $testBrand -> save();
 
-        $req = \PicORM\Entity::getDataSource()->prepare('SELECT * FROM brands WHERE idBrand = ?');
+        $req = \PicORM\Model::getDataSource()->prepare('SELECT * FROM brands WHERE idBrand = ?');
         $req -> execute(array($idBrand));
         $res = $req->fetch(\PDO::FETCH_ASSOC);
 
@@ -209,11 +209,11 @@ class Entity extends atoum {
     }
 
     /**
-     * @dataProvider createAndSaveRawEntity
+     * @dataProvider createAndSaveRawModel
      */
-    public function testCreateEntity($testBrand) {
+    public function testCreateModel($testBrand) {
 
-        $req = \PicORM\Entity::getDataSource()->prepare('SELECT * FROM brands WHERE idBrand = ?');
+        $req = \PicORM\Model::getDataSource()->prepare('SELECT * FROM brands WHERE idBrand = ?');
         $req -> execute(array($testBrand -> idBrand));
         $res = $req->fetch(\PDO::FETCH_ASSOC);
 

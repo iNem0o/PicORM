@@ -6,11 +6,11 @@
 
     include('scripts/bootstrap.php');
 
-    \PicORM\Entity::getDataSource()->query(file_get_contents('scripts/testschema.sql'));
+    \PicORM\Model::getDataSource()->query(file_get_contents('scripts/testschema.sql'));
 
-    \PicORM\Entity::getDataSource()->query('TRUNCATE brands');
-    \PicORM\Entity::getDataSource()->query('TRUNCATE cars');
-    \PicORM\Entity::getDataSource()->query('TRUNCATE car_have_tag');
-    \PicORM\Entity::getDataSource()->query('TRUNCATE tags');
+    \PicORM\Model::getDataSource()->query('TRUNCATE brands');
+    \PicORM\Model::getDataSource()->query('TRUNCATE cars');
+    \PicORM\Model::getDataSource()->query('TRUNCATE car_have_tag');
+    \PicORM\Model::getDataSource()->query('TRUNCATE tags');
 
     print `php mageekguy.atoum.phar -bf scripts/bootstrap.php -d units`;

@@ -3,7 +3,7 @@ namespace PicORM;
 /**
  * PicORM is a simple and light PHP Object-Relational Mapping
  */
-abstract class Entity
+abstract class Model
 {
     /**
      * Table primary key
@@ -12,19 +12,19 @@ abstract class Entity
     protected static $_primaryKey = null;
 
     /**
-     * Entity Database name
+     * Model Database name
      * @var string
      */
     protected static $_databaseName = null;
 
     /**
-     * Entity table name
+     * Model table name
      * @var string
      */
     protected static $_tableName = null;
 
     /**
-     * Entity relations
+     * Model relations
      * @var array
      */
     protected static $_relations = null;
@@ -36,7 +36,7 @@ abstract class Entity
     protected static $_tableFields = null;
 
     /**
-     * Array to store OOP declaration status of each Entity subclass
+     * Array to store OOP declaration status of each Model subclass
      * @var array
      */
     private static $validationStatus = array();
@@ -48,7 +48,7 @@ abstract class Entity
     protected static $_dataSource;
 
     /**
-     * Define if entity have been saved
+     * Define if model have been saved
      * @var bool
      */
     protected $_isNew = true;
@@ -69,7 +69,7 @@ abstract class Entity
     const MANY_TO_MANY = 3;
 
     /**
-     * Can declare entity relations with calling
+     * Can declare model relations with calling
      * ::addRelationOneToOne()
      * ::addRelationOneToMany()
      * @return mixed
@@ -80,16 +80,16 @@ abstract class Entity
     }
 
     /**
-     * Validate if this entity is correctly implemented
+     * Validate if this model is correctly implemented
      * @throws Exception
      */
-    protected static function _validateEntity()
+    protected static function _validateModel()
     {
         // assure that check is only did once
         if (!isset(self::$validationStatus[static::$_databaseName . static::$_tableName])) {
 
             $subClassName = get_class(new static());
-            // check entity OOP static structure is OK
+            // check model OOP static structure is OK
             if (static::$_tableName === null) throw new Exception($subClassName . '::$_tableName must be implemented');
             if (static::$_primaryKey === null) throw new Exception($subClassName . '::$_primaryKey must be implemented');
             if (static::$_tableFields === null) throw new Exception($subClassName . '::$_tableFields must be implemented');
@@ -130,7 +130,7 @@ abstract class Entity
     }
 
     /**
-     * Save entity in database
+     * Save model in database
      */
     public function save()
     {
@@ -141,7 +141,7 @@ abstract class Entity
     }
 
     /**
-     * Return entity data in JSON
+     * Return model data in JSON
      * @return string
      */
     public function __toJson()
@@ -162,7 +162,7 @@ abstract class Entity
      */
     public function __call($method, $args)
     {
-        static::_validateEntity();
+        static::_validateModel();
 
         if (preg_match('/^(get|set|unset)(.+)/', $method, $matches) && array_key_exists(strtolower($matches[2]), static::$_relations)) {
             $toCall = '_' . $matches[1] . 'Relation';
@@ -186,7 +186,7 @@ abstract class Entity
         switch ($configRelation['typeRelation']) {
             case self::MANY_TO_MANY:
                 if (!is_array($callArgs[0])) $callArgs[0] = array($callArgs[0]);
-                foreach ($callArgs[0] as $oneRelationEntity) {
+                foreach ($callArgs[0] as $oneRelationModel) {
                     $query = new InternalQueryHelper();
                     $query->delete($configRelation['relationTable'])
                         ->where($configRelation['sourceField'], '=', '?')
@@ -194,7 +194,7 @@ abstract class Entity
 
                     $query = static::$_dataSource->prepare($query->buildQuery());
 
-                    $query->execute(array($this->{$configRelation['sourceField']}, $oneRelationEntity->{$configRelation['targetField']}));
+                    $query->execute(array($this->{$configRelation['sourceField']}, $oneRelationModel->{$configRelation['targetField']}));
                 }
                 $isDeleted = true;
                 break;
@@ -225,9 +225,9 @@ abstract class Entity
                 break;
             case self::ONE_TO_MANY:
                 if (is_array($callArgs[0])) {
-                    foreach ($callArgs[0] as $oneRelationEntity) {
-                        $oneRelationEntity->{$configRelation['targetField']} = $this->{$configRelation['sourceField']};
-                        $oneRelationEntity->save();
+                    foreach ($callArgs[0] as $oneRelationModel) {
+                        $oneRelationModel->{$configRelation['targetField']} = $this->{$configRelation['sourceField']};
+                        $oneRelationModel->save();
                     }
                     $isSaved = true;
                 }
@@ -246,17 +246,17 @@ abstract class Entity
                     ->values($configRelation['targetField'], "?");
                 $insertQuery = static::$_dataSource->prepare($insertQuery->buildQuery());
 
-                foreach ($callArgs[0] as $oneRelationEntity) {
-                    if ($oneRelationEntity->isNew()) $oneRelationEntity->save();
+                foreach ($callArgs[0] as $oneRelationModel) {
+                    if ($oneRelationModel->isNew()) $oneRelationModel->save();
 
                     // test if relation already exists
-                    $testQuery->execute(array($this->{$configRelation['sourceField']}, $oneRelationEntity->{$configRelation['targetField']}));
+                    $testQuery->execute(array($this->{$configRelation['sourceField']}, $oneRelationModel->{$configRelation['targetField']}));
                     $errorcode = $testQuery->errorInfo();
                     if ($errorcode[0] != "00000") throw new Exception($errorcode[2]);
                     $testResult = $testQuery->fetch(\PDO::FETCH_ASSOC);
                     if ($testResult['nb'] == 0) {
                         // create link in relation table
-                        $insertQuery->execute(array($this->{$configRelation['sourceField']}, $oneRelationEntity->{$configRelation['targetField']}));
+                        $insertQuery->execute(array($this->{$configRelation['sourceField']}, $oneRelationModel->{$configRelation['targetField']}));
                         $errorcode = $insertQuery->errorInfo();
                         if ($errorcode[0] != "00000") throw new Exception($errorcode[2]);
 
@@ -331,7 +331,7 @@ abstract class Entity
                     array("`" . $configRelation['relationTable'] . "`." . $configRelation['sourceField'] => $this->{$configRelation['sourceField']})
                 );
 
-                $relationValue = new EntityCollection(static::getDataSource(), $selectRelations, $classRelation);
+                $relationValue = new Collection(static::getDataSource(), $selectRelations, $classRelation);
                 break;
         }
 
@@ -356,10 +356,10 @@ abstract class Entity
 
     /**
      * Add a OneToOne relation
-     * @param $sourceField          - entity source field
-     * @param $classRelation        - relation entity classname
-     * @param $targetField          - related entity target field
-     * @param array $autoGetFields  - field to auto get from relation when loading entity
+     * @param $sourceField          - model source field
+     * @param $classRelation        - relation model classname
+     * @param $targetField          - related model target field
+     * @param array $autoGetFields  - field to auto get from relation when loading model
      * @param string $aliasRelation - override relation auto naming className with an alias
      *                                    (ex : for reflexive relation)
      * @throws Exception
@@ -370,8 +370,8 @@ abstract class Entity
         if(!is_string($classRelation)) throw new Exception('$classRelation have to be a string');
         if(!is_string($targetField)) throw new Exception('$targetField have to be a string');
 
-        if (!class_exists($classRelation) || !new $classRelation() instanceof Entity)
-        throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of \PicORM\Entity");
+        if (!class_exists($classRelation) || !new $classRelation() instanceof Model)
+        throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of \PicORM\Model");
 
         if (!is_array($autoGetFields)) $autoGetFields = array($autoGetFields);
 
@@ -389,16 +389,16 @@ abstract class Entity
 
     /**
      * Add a OneToMany relation
-     * @param $sourceField          - entity source field
-     * @param $classRelation        - relation entity classname
-     * @param $targetField          - related entity target field
+     * @param $sourceField          - model source field
+     * @param $classRelation        - relation model classname
+     * @param $targetField          - related model target field
      * @param string $aliasRelation - override relation auto naming className with an alias
      * @throws Exception
      */
     protected static function addRelationOneToMany($sourceField, $classRelation, $targetField, $aliasRelation = '')
     {
-        if (!class_exists($classRelation) || !new $classRelation() instanceof Entity)
-            throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of PicORM\Entity");
+        if (!class_exists($classRelation) || !new $classRelation() instanceof Model)
+            throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of PicORM\Model");
 
         $idRelation = self :: formatClassnameToRelationName($classRelation);
         if (!empty($aliasRelation)) $idRelation = $aliasRelation;
@@ -413,17 +413,17 @@ abstract class Entity
 
     /**
      * Add a ManyToMany relation
-     * @param $sourceField           - entity source field
-     * @param $classRelation         - relation entity name
-     * @param $targetField           - related entity field
+     * @param $sourceField           - model source field
+     * @param $classRelation         - relation model name
+     * @param $targetField           - related model field
      * @param $relationTable         - mysql table containing the two entities ID
      * @param string $aliasRelation  - override relation auto naming className
      * @throws Exception
      */
     protected static function addRelationManyToMany($sourceField, $classRelation, $targetField, $relationTable, $aliasRelation = '')
     {
-        if (!class_exists($classRelation) || !new $classRelation() instanceof Entity)
-            throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of PicORM\Entity");
+        if (!class_exists($classRelation) || !new $classRelation() instanceof Model)
+            throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of PicORM\Model");
 
         $idRelation = self :: formatClassnameToRelationName($classRelation);
         if (!empty($aliasRelation)) $idRelation = $aliasRelation;
@@ -438,11 +438,11 @@ abstract class Entity
     }
 
     /**
-     * Return entity array fetched from database with custom mysql query
+     * Return model array fetched from database with custom mysql query
      * @param $req
      * @param $params
      * @return static[]
-     * @todo must return EntityCollection
+     * @todo must return Collection
      */
     public static function findQuery($req, $params)
     {
@@ -460,7 +460,7 @@ abstract class Entity
     }
 
     /**
-     * Return entity collection fetched from database with criteria
+     * Return model collection fetched from database with criteria
      * @param array $where - associative array ex:
      *            simple criteria        array('idMarque' => 1)
      *            custom operator        array('idMarque' => array('operator' => '<=','value' => ''))
@@ -468,19 +468,19 @@ abstract class Entity
      * @param array $order - associative array ex:array('libMarque'=>'ASC')
      * @param int $limitStart - int
      * @param int $limitEnd - int
-     * @return EntityCollection
+     * @return Collection
      */
     public static function find($where = array(), $order = array(), $limitStart = null, $limitEnd = null)
     {
-        self :: _validateEntity();
+        self :: _validateModel();
 
         $queryHelper = static::buildSelectQuery(array("*"), $where, $order, $limitStart, $limitEnd);
 
-        return new EntityCollection(static::$_dataSource, $queryHelper, get_called_class());
+        return new Collection(static::$_dataSource, $queryHelper, get_called_class());
     }
 
     /**
-     * Find one entity from criteria
+     * Find one model from criteria
      * @param array $where - associative array ex:
      *            simple criteria        array('idMarque' => 1)
      *            custom operator        array('idMarque' => array('operator' => '<=','value' => ''))
@@ -490,16 +490,16 @@ abstract class Entity
      */
     public static function findOne($where = array(), $order = array())
     {
-        if ($dataEntity = self::select(array('*'), $where, $order, 1)) {
-            $entity = new static();
-            $entity->hydrate($dataEntity);
-            return $entity;
+        if ($dataModel = self::select(array('*'), $where, $order, 1)) {
+            $model = new static();
+            $model->hydrate($dataModel);
+            return $model;
         } else
             return null;
     }
 
     /**
-     * Test if entity is already save in database
+     * Test if model is already save in database
      * @return bool
      */
     public function isNew()
@@ -508,7 +508,7 @@ abstract class Entity
     }
 
     /**
-     * Count number of entity in database from criteria
+     * Count number of model in database from criteria
      * @param array $where - associative array ex:
      *            simple criteria        array('idMarque' => 1)
      *            custom operator        array('idMarque' => array('operator' => '<=','value' => ''))
@@ -535,12 +535,12 @@ abstract class Entity
      */
     public static function buildSelectQuery($fields = array('*'), $where = array(), $order = array(), $limitStart = null, $limitEnd = null)
     {
-        $entityTableName = static::formatTableNameMySQL();
+        $modelTableName = static::formatTableNameMySQL();
 
-        // be sure that "*" is prefixed with entity table name
+        // be sure that "*" is prefixed with model table name
         foreach ($fields as &$oneField) {
             if ($oneField == "*") {
-                $oneField = $entityTableName . ".*";
+                $oneField = $modelTableName . ".*";
                 break;
             }
         }
@@ -548,11 +548,11 @@ abstract class Entity
 
         $helper = new InternalQueryHelper();
 
-        $where = $helper->prefixWhereWithTable($where, $entityTableName);
-        $orders = $helper->prefixOrderWithTable($order, $entityTableName);
+        $where = $helper->prefixWhereWithTable($where, $modelTableName);
+        $orders = $helper->prefixOrderWithTable($order, $modelTableName);
 
         $helper->select($fields)
-            ->from($entityTableName);
+            ->from($modelTableName);
 
         // check one to one relation with auto get fields
         // and append necessary fields to select
@@ -564,7 +564,7 @@ abstract class Entity
                 $helper->select($uneRelation['autoGetFields']);
 
                 $helper->leftJoin($uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
-                    'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $entityTableName . '.`' . $uneRelation['sourceField'] . '`');
+                    'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $modelTableName . '.`' . $uneRelation['sourceField'] . '`');
                 $nbRelation++;
             }
         }
@@ -580,7 +580,7 @@ abstract class Entity
     }
 
     /**
-     * Build a select mysql query for this entity from criteria in parameters
+     * Build a select mysql query for this model from criteria in parameters
      * return a raw mysql fetch assoc
      * Using Raw SQL _setVal, assume that you properly filter user input
      *
@@ -598,8 +598,8 @@ abstract class Entity
      */
     public static function select($fields = array('*'), $where = array(), $order = array(), $limitStart = null, $limitEnd = null, $pdoFetchMode = null)
     {
-        // validate entity PHP structure if necessary before using it
-        static::_validateEntity();
+        // validate model PHP structure if necessary before using it
+        static::_validateModel();
 
         $mysqlQuery = static::buildSelectQuery($fields, $where, $order, $limitStart, $limitEnd);
         $query = static::$_dataSource->prepare($mysqlQuery->buildQuery());
@@ -619,7 +619,7 @@ abstract class Entity
     }
 
     /**
-     * Hydrate entity from a fetch assoc
+     * Hydrate model from a fetch assoc
      * including OneToOne relation auto get field
      * @param $data
      */
@@ -644,14 +644,14 @@ abstract class Entity
     }
 
     /**
-     * Delete this entity from database
+     * Delete this model from database
      * @return array
      * @throws Exception
      */
     public function delete()
     {
-        // validate entity PHP structure if necessary before using it
-        static::_validateEntity();
+        // validate model PHP structure if necessary before using it
+        static::_validateModel();
 
         $query = new InternalQueryHelper();
         $query->delete(self::formatTableNameMySQL())
@@ -670,14 +670,14 @@ abstract class Entity
     }
 
     /**
-     * Update entity field in database
+     * Update model field in database
      * @return bool
      * @throws Exception
      */
     private function update()
     {
-        // validate entity PHP structure if necessary before using it
-        static::_validateEntity();
+        // validate model PHP structure if necessary before using it
+        static::_validateModel();
 
         $helper = new InternalQueryHelper();
         $helper->update(static::$_tableName);
@@ -707,12 +707,12 @@ abstract class Entity
     }
 
     /**
-     * Insert entity in database
+     * Insert model in database
      */
     private function insert()
     {
-        // validate entity PHP structure if necessary before using it
-        static::_validateEntity();
+        // validate model PHP structure if necessary before using it
+        static::_validateModel();
 
         $params = array();
         $queryHelp = new InternalQueryHelper();

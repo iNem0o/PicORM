@@ -2,18 +2,18 @@
 namespace PicORM\tests\units;
 use \atoum;
 
-class EntityCollection extends atoum {
+class Collection extends atoum {
 
     public static function cleanTables() {
-        \PicORM\Entity::getDataSource()->query('TRUNCATE brands');
-        \PicORM\Entity::getDataSource()->query('TRUNCATE cars');
-        \PicORM\Entity::getDataSource()->query('TRUNCATE car_have_tag');
-        \PicORM\Entity::getDataSource()->query('TRUNCATE tags');
+        \PicORM\Model::getDataSource()->query('TRUNCATE brands');
+        \PicORM\Model::getDataSource()->query('TRUNCATE cars');
+        \PicORM\Model::getDataSource()->query('TRUNCATE car_have_tag');
+        \PicORM\Model::getDataSource()->query('TRUNCATE tags');
     }
 
-    public static function createAndSaveRawEntityWithOneToManyRelation() {
+    public static function createAndSaveRawModelWithOneToManyRelation() {
         self::cleanTables();
-        include_once __DIR__ . '/../scripts/raw_entity.php';
+        include_once __DIR__ . '/../scripts/raw_models.php';
 
         $testBrand = new \Brand();
         $testBrand -> nameBrand = 'AcmeMult';
@@ -42,10 +42,10 @@ class EntityCollection extends atoum {
     }
 
     /**
-     * @dataProvider createAndSaveRawEntityWithOneToManyRelation
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testDeleteCollection($testBrand,$cars) {
-        include_once __DIR__ . '/../scripts/raw_entity.php';
+        include_once __DIR__ . '/../scripts/raw_models.php';
 
         $this -> variable(count($testBrand->getCar()))->isEqualTo('3');
 
@@ -55,14 +55,14 @@ class EntityCollection extends atoum {
     }
 
     /**
-     * @dataProvider createAndSaveRawEntityWithOneToManyRelation
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testUpdateCollection($testBrand,$cars) {
-        include_once __DIR__ . '/../scripts/raw_entity.php';
+        include_once __DIR__ . '/../scripts/raw_models.php';
 
         $testBrand->getCar()->update(array('nameCar' => 'test'));
 
-        $req = \PicORM\Entity::getDataSource()->prepare('
+        $req = \PicORM\Model::getDataSource()->prepare('
             SELECT count(*) as nb FROM cars WHERE nameCar = ?
         ');
         $req -> execute(array('test'));
@@ -72,7 +72,7 @@ class EntityCollection extends atoum {
 
         $testBrand->getCar()->update(array('nameCar' => 'test'));
 
-        $req = \PicORM\Entity::getDataSource()->prepare('
+        $req = \PicORM\Model::getDataSource()->prepare('
             SELECT count(*) as nb FROM cars WHERE nameCar = ?
         ');
         $req -> execute(array('test'));

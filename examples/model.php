@@ -4,7 +4,7 @@ require('../src/autoload.inc.php');
 use PicORM\Model;
 
 try {
-    Model::configure(array(
+    PicORM::configure(array(
         'datasource' => new PDO('mysql:dbname=DBNAME;host=HOST', 'DBLOGIN', 'DBPASSWD')
     ));
 

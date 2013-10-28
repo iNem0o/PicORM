@@ -39,10 +39,10 @@ Before using ``PicORM`` you have to configure it.
 ```
 
 
-## Entity
-**Implements an Entity**
+## Model
+**Implements a Model**
 
-First you have to create a table, which your entity will be mapped to
+First you have to create a table, which your model will be mapped to
 
 ```sql
     CREATE TABLE `brands` (
@@ -53,7 +53,7 @@ First you have to create a table, which your entity will be mapped to
     ) ENGINE=MyISAM;
 ```
 
-Next create a class which extends ``\PicORM\Entity``
+Next create a class which extends ``\PicORM\Model``
 You have to implements some static parameters to describe your MySQL table schema, if you forgot one of them, a ``\PicORM\Exception`` will remind you
 
 *Required*
@@ -70,10 +70,10 @@ You have to implements some static parameters to describe your MySQL table schem
 
 and then, add one public property by table field with ``public $fieldName``
   
-**Brand entity declaration**
+**Brand model declaration**
   
 ```php
-    class Brand extends \PicORM\Entity
+    class Brand extends \PicORM\Model
     {
         protected static $_tableName = 'brands';
         protected static $_primaryKey = 'idBrand';
@@ -93,13 +93,13 @@ and then, add one public property by table field with ``public $fieldName``
 **Create and save**
 
 ```php
-// creating new entity
+// creating new model
 	$brand = new Brand();
 
 // setting field
 	$brand -> nameBrand = 'Peugeot';
 
-// save entity
+// save model
 	$brand -> save();
 ```
 
@@ -109,13 +109,13 @@ and then, add one public property by table field with ``public $fieldName``
 // Criteria with exact value (idBrand=10)
     $brand = Brand :: findOne(array('idBrand' => 10));
 
-// setting entity property
+// setting model property
 	$brand -> nameBrand = 'Audi';
 
-// save entity
+// save model
 	$brand -> save();
 	
-// save entity
+// save model
 	$brand -> delete();
 ```
 
@@ -150,27 +150,27 @@ and then, add one public property by table field with ``public $fieldName``
 ```
 
 ## Collections
-Collections in PicORM are created by ``::find()`` method, accessible statically on each ``\PicORM\Entity`` subclass.
-When you have a fresh EntityCollection instance, data is not fetched yet. Fetching is done only when you try to access data with one of these way
+Collections in PicORM are created by ``::find()`` method, accessible statically on each ``\PicORM\Model`` subclass.
+When you have a fresh \PicORM\Collection instance, data is not fetched yet. Fetching is done only when you try to access data with one of these way
 
 ```php
 // php array access
-	$firstEntity = $collection[0];
+	$firstResult = $collection[0];
 	
 // counting collection
-	$nbEntities = count($collection);
+	$nbResults = count($collection);
 	
 // using getter
-	$firstEntity = $collection->get(0);
+	$firstResult = $collection->get(0);
 	
 // iterate over the collection
-	foreach($collection as $entity)
+	foreach($collection as $model)
 	
 // or manual fetching / re-fetching
 	$collection->fetchCollection();
 ```
 
-An EntityCollection instance can execute UPDATE and DELETE queries on the collection members before fetching data,
+An \PicORM\Collection instance can execute UPDATE and DELETE queries on the collection members before fetching data,
 this way using ``update()`` or ``delete()`` method produce only one MySQL query based on ``find()`` restriction parameters
 
 ```php
@@ -183,9 +183,9 @@ this way using ``update()`` or ``delete()`` method produce only one MySQL query 
 ```
 
 ## Relations between entities
-Using relations will need you to add a property and a method to your entity subclass.
+Using relations will need you to add a property and a method to your model subclass.
 
-``protected static $_relations = array();``  needed to be implemented to store entity relations
+``protected static $_relations = array();``  needed to be implemented to store model relations
 ``protected static function defineRelations() { }`` method to declare your relation
 
 using ``defineRelations()`` you can add 3 types of relation
@@ -193,10 +193,10 @@ using ``defineRelations()`` you can add 3 types of relation
 ```php
 /**
  * Add a OneToOne relation
- * @param $sourceField          - entity source field
- * @param $classRelation        - relation entity classname
- * @param $targetField          - related entity target field
- * @param array $autoGetFields  - field to auto get from relation when loading entity
+ * @param $sourceField          - model source field
+ * @param $classRelation        - relation model classname
+ * @param $targetField          - related model target field
+ * @param array $autoGetFields  - field to auto get from relation when loading model
  * @param string $aliasRelation - override relation auto naming className with an alias
  *                                    (ex : for reflexive relation)
  */
@@ -204,18 +204,18 @@ protected static function addRelationOneToOne($sourceField, $classRelation, $tar
 
 /**
  * Add a OneToMany relation
- * @param $sourceField          - entity source field
- * @param $classRelation        - relation entity classname
- * @param $targetField          - related entity target field
+ * @param $sourceField          - model source field
+ * @param $classRelation        - relation model classname
+ * @param $targetField          - related model target field
  * @param string $aliasRelation - override relation auto naming className with an alias
  */
 protected static function addRelationOneToMany($sourceField, $classRelation, $targetField, $aliasRelation = '')
 
 /**
  * Add a ManyToMany relation
- * @param $sourceField           - entity source field
- * @param $classRelation         - relation entity name
- * @param $targetField           - related entity field
+ * @param $sourceField           - model source field
+ * @param $classRelation         - relation model name
+ * @param $targetField           - related model field
  * @param $relationTable         - mysql table containing the two entities ID
  * @param string $aliasRelation  - override relation auto naming className
  */
@@ -255,7 +255,7 @@ CREATE TABLE `tags` (
 First you have declare your 3 entities and their relations
 
 ```php
-class Brand extends Entity
+class Brand extends Model
 {
 	protected static $_tableName = 'brands';
 	protected static $_primaryKey = "idBrand";
@@ -278,7 +278,7 @@ class Brand extends Entity
 	}
 }
 
-class Car extends Entity
+class Car extends Model
 {
 	protected static $_tableName = 'cars';
 	protected static $_primaryKey = "idCar";
@@ -298,7 +298,7 @@ class Car extends Entity
 		// create a relation between Car and Brand
 		// based on this.idBrand = Brand.idBrand
 		// nameBrand is added to autoget fields which is automatically fetched
-		// when entity is loaded
+		// when model is loaded
 		self::addRelationOneToOne('idBrand', 'Brand', 'idBrand', 'nameBrand');
 
 		// create a relation between Car and Tag using a relation table car_have_tag
@@ -306,7 +306,7 @@ class Car extends Entity
 	}
 }
 
-class Tag extends Entity
+class Tag extends Model
 {
 	protected static $_tableName = 'tags';
 	protected static $_primaryKey = "idTag";
@@ -362,12 +362,12 @@ As you declare a one to many relation from Brand to Car you can also using sette
 
 ```php	
 // get all cars from brand
-// method return instance of EntityCollection
+// method return instance of \PicORM\Collection
     foreach($brand -> getCar() as $cars)
 
 // get all cars from brand with custom criteria
 // parameters are same as find() method
-// method return instance of EntityCollection
+// method return instance of \PicORM\Collection
     $brand -> getCar($where,$order,$limitStart,$limitStop);
 ```
 
@@ -390,12 +390,12 @@ Many to many relations are easy to use too
 // setting car's tags
     $car -> setTag(array($tag,$tag2,$tag3));
 
-// getting car's tags (return instance of EntityCollection)
+// getting car's tags (return instance of \PicORM\Collection)
     $car -> getTag();
 
 // getting car's tags with custom criteria
 // parameters are same as find() method
-// method return instance of EntityCollection
+// method return instance of \PicORM\Collection
     $car -> getTag($where,$order,$limitStart,$limitStop);
 
 // unset relation between $car and $tag2

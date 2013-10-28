@@ -1,10 +1,10 @@
 <?php
 require('../src/autoload.inc.php');
 
-use PicORM\Entity;
+use PicORM\Model;
 
 try {
-    Entity::configure(array(
+    PicORM::configure(array(
         'datasource' => new PDO('mysql:dbname=DBNAME;host=HOST', 'DBLOGIN', 'DBPASSWD')
     ));
 
@@ -34,7 +34,7 @@ try {
         ) ENGINE = MYISAM ;
     */
 
-    class Brand extends Entity
+    class Brand extends Model
     {
         protected static $_tableName = 'brands';
         protected static $_primaryKey = "idBrand";
@@ -57,7 +57,7 @@ try {
         }
     }
 
-    class Car extends Entity
+    class Car extends Model
     {
         protected static $_tableName = 'cars';
         protected static $_primaryKey = "idCar";
@@ -77,7 +77,7 @@ try {
             // create a relation between Car and Brand
             // based on this.idBrand = Brand.idBrand
             // nameBrand is added to autoget fields which is automatically fetched
-            // when entity is loaded
+            // when model is loaded
             self::addRelationOneToOne('idBrand', 'Brand', 'idBrand', 'nameBrand');
 
             // create a relation between Car and Tag using a relation table car_have_tag
@@ -85,7 +85,7 @@ try {
         }
     }
 
-    class Tag extends Entity
+    class Tag extends Model
     {
         protected static $_tableName = 'tags';
         protected static $_primaryKey = "idTag";

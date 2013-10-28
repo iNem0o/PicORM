@@ -2,11 +2,11 @@
 namespace PicORM;
 
 /**
- * Store an entity list defined by a InternalQueryHelper
+ * Store a model list defined by a InternalQueryHelper
  * and allow to fetch / modify / delete them
  * @package PicORM
  */
-class EntityCollection implements \Iterator, \Countable, \ArrayAccess
+class Collection implements \Iterator, \Countable, \ArrayAccess
 {
     /**
      * Iterator pointer position
@@ -57,7 +57,7 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
      */
     public function fetchCollection()
     {
-        $entityName = $this->_className;
+        $modelName = $this->_className;
         $query = $this->_dataSource->prepare($this->_queryHelper->buildQuery());
         $query->execute($this->_queryHelper->getWhereParamsValues());
 
@@ -67,7 +67,7 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
 
         $fetch = $query->fetchAll(\PDO::FETCH_ASSOC);
         foreach ($fetch as &$unRes) {
-            $object = new $entityName();
+            $object = new $modelName();
             $object->hydrate($unRes);
             $unRes = $object;
         }
@@ -78,17 +78,17 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-     * Delete entity in collection
+     * Delete model in collection
      * @throws Exception
      */
     public function delete()
     {
-        $entityClass = $this->_className;
+        $modelClass = $this->_className;
 
         // cloning fetch query to get where,order by and limit values
         $deleteQuery = clone($this->_queryHelper);
         $deleteQuery->cleanQueryBeforeSwitching()
-            ->delete($entityClass::formatTableNameMySQL());
+            ->delete($modelClass::formatTableNameMySQL());
 
         $query = $this->_dataSource->prepare($deleteQuery->buildQuery());
         $query->execute($deleteQuery->getWhereParamsValues());
@@ -104,12 +104,12 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
      */
     public function update(array $setValues)
     {
-        $entityClass = $this->_className;
+        $modelClass = $this->_className;
 
         // cloning fetch query to get where,order by and limit values
         $updateQuery = clone($this->_queryHelper);
         $updateQuery->cleanQueryBeforeSwitching()
-            ->update($entityClass::formatTableNameMySQL());
+            ->update($modelClass::formatTableNameMySQL());
 
         $params = array();
         foreach ($setValues as $fieldName => $value) {
@@ -150,13 +150,13 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-     * Set collection element with $entity at $index
+     * Set collection element with $model at $index
      * @param $id
-     * @param $entity
+     * @param $model
      */
-    public function set($index, $entity)
+    public function set($index, $model)
     {
-        $this->entities[$index] = $entity;
+        $this->entities[$index] = $model;
     }
 
 // iterator methods

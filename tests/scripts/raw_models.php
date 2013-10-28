@@ -1,5 +1,5 @@
 <?php
-class BrandEntity extends \PicOrm\Model
+class BrandModel extends \PicOrm\Model
 {
     protected static $_tableName = 'brands';
     protected static $_primaryKey = "idBrand";
@@ -22,7 +22,7 @@ class BrandEntity extends \PicOrm\Model
     }
 }
 
-class Brand extends BrandEntity {
+class Brand extends BrandModel {
 
 }
 
@@ -66,7 +66,7 @@ class Car extends \PicOrm\Model
         // create a relation between Car and Brand
         // based on this.idBrand = Brand.idBrand
         // nameBrand is added to autoget fields which is automatically fetched
-        // when entity is loaded
+        // when model is loaded
         self::addRelationOneToOne('idBrand', 'Brand', 'idBrand', 'nameBrand');
         self::addRelationManyToMany("idCar","Tag","idTag","car_have_tag");
     }
