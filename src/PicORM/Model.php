@@ -135,9 +135,9 @@ abstract class Model
     public function save()
     {
         if ($this->_isNew)
-            $this->insert();
+            return $this->insert();
         else
-            $this->update();
+            return $this->update();
     }
 
     /**
