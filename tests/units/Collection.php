@@ -47,11 +47,11 @@ class Collection extends atoum {
     public function testDeleteCollection($testBrand,$cars) {
         include_once __DIR__ . '/../scripts/raw_models.php';
 
-        $this -> variable(count($testBrand->getCar()))->isEqualTo('3');
+        $this -> integer(count($testBrand->getCar()))->isEqualTo(3);
 
         $testBrand->getCar()->delete();
 
-        $this -> variable(count($testBrand->getCar()))->isEqualTo('0');
+        $this -> integer(count($testBrand->getCar()))->isEqualTo(0);
     }
 
     /**
@@ -68,7 +68,7 @@ class Collection extends atoum {
         $req -> execute(array('test'));
         $res = $req->fetch(\PDO::FETCH_ASSOC);
 
-        $this -> variable($res['nb'])->isEqualTo('3');
+        $this -> string($res['nb'])->isEqualTo('3');
 
         $testBrand->getCar()->update(array('nameCar' => 'test'));
 
@@ -78,7 +78,7 @@ class Collection extends atoum {
         $req -> execute(array('test'));
         $res = $req->fetch(\PDO::FETCH_ASSOC);
 
-        $this -> variable($res['nb'])->isEqualTo('3');
+        $this -> string($res['nb'])->isEqualTo('3');
     }
 
 

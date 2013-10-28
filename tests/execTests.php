@@ -8,9 +8,4 @@
 
     \PicORM\Model::getDataSource()->query(file_get_contents('scripts/testschema.sql'));
 
-    \PicORM\Model::getDataSource()->query('TRUNCATE brands');
-    \PicORM\Model::getDataSource()->query('TRUNCATE cars');
-    \PicORM\Model::getDataSource()->query('TRUNCATE car_have_tag');
-    \PicORM\Model::getDataSource()->query('TRUNCATE tags');
-
     print `php mageekguy.atoum.phar -bf scripts/bootstrap.php -d units`;

@@ -1,10 +1,12 @@
 <?php
 namespace PicORM\tests\units;
+
 use \atoum;
 
-class Model extends atoum {
-
-    public static function cleanTables() {
+class Model extends atoum
+{
+    public function tearDown()
+    {
         \PicORM\Model::getDataSource()->query('TRUNCATE brands');
         \PicORM\Model::getDataSource()->query('TRUNCATE cars');
         \PicORM\Model::getDataSource()->query('TRUNCATE car_have_tag');
@@ -12,94 +14,127 @@ class Model extends atoum {
     }
 
     //// DATA PROVIDERS /////
-    public static function createAndSaveRawModel() {
-        self::cleanTables();
+    public static function createAndSaveRawModel()
+    {
         include_once __DIR__ . '/../scripts/raw_models.php';
         $testBrand = new \Brand();
-        $testBrand -> nameBrand = 'Acme';
-        $testBrand -> noteBrand = 10;
-        $testBrand -> save();
+        $testBrand->nameBrand = 'Acme';
+        $testBrand->noteBrand = 10;
+        $testBrand->save();
+
+        $req = \PicORM\Model::getDataSource()->prepare('SELECT * FROM brands WHERE idBrand = ?');
+        $req->execute(array($testBrand->idBrand));
+        $bddResult = $req->fetch(\PDO::FETCH_ASSOC);
+
+
+        return array(array($testBrand, $bddResult));
+    }
+
+    public static function createAndSaveRawModelForUpdateDelete()
+    {
+        include_once __DIR__ . '/../scripts/raw_models.php';
+        $testBrand = new \Brand();
+        $testBrand->nameBrand = 'Acme';
+        $testBrand->noteBrand = 10;
+        $testBrand->save();
+
+
         return array($testBrand);
     }
 
-    public static function createAndSaveRawModelWithOneToOneRelation() {
-        self::cleanTables();
+    public static function createAndSaveRawModelWithOneToOneRelation()
+    {
         include_once __DIR__ . '/../scripts/raw_models.php';
 
         $testBrand = new \Brand();
-        $testBrand -> nameBrand = 'Acme';
-        $testBrand -> noteBrand = 10;
-        $testBrand -> save();
+        $testBrand->nameBrand = 'Acme';
+        $testBrand->noteBrand = 10;
+        $testBrand->save();
 
         $car = new \Car();
-        $car -> nameCar = 'AcmeCarcreateAndSaveRawModelWithOneToOneRelation';
-        $car -> noteCar = '10';
-        $car -> setBrand($testBrand);
-        $car -> save();
+        $car->nameCar = 'AcmeCarcreateAndSaveRawModelWithOneToOneRelation';
+        $car->noteCar = '10';
+        $car->setBrand($testBrand);
+        $car->save();
+
+        $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM cars WHERE idBrand = ? AND idCar = ?');
+        $req->execute(array($testBrand->idBrand, $car->idCar));
+        $resultBDD = $req->fetch(\PDO::FETCH_ASSOC);
 
         return array(
-            array($testBrand,$car)
+            array($testBrand, $car, $resultBDD)
         );
     }
-    public static function createAndSaveRawModelWithManyToManyRelation() {
-        self::cleanTables();
+
+    public static function createAndSaveRawModelWithManyToManyRelation()
+    {
         include_once __DIR__ . '/../scripts/raw_models.php';
 
         $car = new \Car();
-        $car -> nameCar = 'AcmeCar';
-        $car -> noteCar = '10';
-        $car -> idBrand = 1;
-        $car -> save();
+        $car->nameCar = 'AcmeCar';
+        $car->noteCar = '10';
+        $car->idBrand = 1;
+        $car->save();
 
         $tags = array();
 
         $tag1 = new \Tag();
-        $tag1 -> libTag = 'Sport';
-        $tag1 -> save();
+        $tag1->libTag = 'Sport';
+        $tag1->save();
         $tag2 = new \Tag();
-        $tag2 -> libTag = 'Family';
-        $tag2 -> save();
+        $tag2->libTag = 'Family';
+        $tag2->save();
         $tag3 = new \Tag();
-        $tag3 -> libTag = 'Crossover';
-        $tag3 -> save();
+        $tag3->libTag = 'Crossover';
+        $tag3->save();
         $tags[] = $tag1;
         $tags[] = $tag2;
         $tags[] = $tag3;
 
-        $car -> setTag($tags);
-        $car -> save();
+        $car->setTag($tags);
+        $car->save();
+
+        // create test
+        $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM car_have_tag WHERE idCar = ?');
+        $req->execute(array($car->idCar));
+        $resultBDD = $req->fetch(\PDO::FETCH_ASSOC);
+
         return array(
-            array($car,$tags)
+            array($car, $tags, $resultBDD)
         );
     }
 
-    public static function createAndSaveRawModelWithOneToManyRelation() {
-        self::cleanTables();
+    public static function createAndSaveRawModelWithOneToManyRelation()
+    {
         include_once __DIR__ . '/../scripts/raw_models.php';
 
         $testBrand = new \Brand();
-        $testBrand -> nameBrand = 'AcmeMult';
-        $testBrand -> noteBrand = 10;
-        $testBrand -> save();
+        $testBrand->nameBrand = 'AcmeMult';
+        $testBrand->noteBrand = 10;
+        $testBrand->save();
 
         $car = new \Car();
-        $car -> nameCar = 'AcmeCar1';
-        $car -> noteCar = '10';
+        $car->nameCar = 'AcmeCar1';
+        $car->noteCar = '10';
 
         $car2 = new \Car();
-        $car2 -> nameCar = 'AcmeCar2';
-        $car2 -> noteCar = '12';
+        $car2->nameCar = 'AcmeCar2';
+        $car2->noteCar = '12';
 
         $car3 = new \Car();
-        $car3 -> nameCar = 'AcmeCar3';
-        $car3 -> noteCar = '15';
+        $car3->nameCar = 'AcmeCar3';
+        $car3->noteCar = '15';
 
-        $cars = array($car,$car2,$car3);
+        $cars = array($car, $car2, $car3);
 
-        $testBrand -> setCar($cars);
+        $testBrand->setCar($cars);
+
+        $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM cars WHERE idBrand = ?');
+        $req->execute(array($testBrand->idBrand));
+        $resultBDD = $req->fetch(\PDO::FETCH_ASSOC);
 
         return array(
-            array($testBrand,$cars)
+            array($testBrand, $cars, $resultBDD)
         );
     }
 
@@ -108,116 +143,119 @@ class Model extends atoum {
     /**
      * @dataProvider createAndSaveRawModelWithManyToManyRelation
      */
-    public function testManyToManyRelationCreation($car,$tags) {
-        // create test
-        $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM car_have_tag WHERE idCar = ?');
-        $req -> execute(array($car -> idCar));
-        $res = $req->fetch(\PDO::FETCH_ASSOC);
-        $this -> variable($res['nb'])->isEqualTo("3");
+    public function testManyToManyRelationCreation($car, $tags, $resultBDD)
+    {
+        $this
+            ->string($resultBDD['nb'])->isEqualTo("3");
     }
 
     /**
      * @dataProvider createAndSaveRawModelWithManyToManyRelation
      */
-    public function testManyToManyRelation($car,$tags) {
-
-        // get test
-        $tagsGet = $car -> getTag();
-        $this -> variable(count($tagsGet))->isEqualTo("3");
-
-        $this -> variable($tagsGet[0]->libTag)->isEqualTo($tags[0]->libTag);
-        $this -> variable($tagsGet[1]->libTag)->isEqualTo($tags[1]->libTag);
-        $this -> variable($tagsGet[2]->libTag)->isEqualTo($tags[2]->libTag);
+    public function testManyToManyRelation($car, $tags, $resultBDD)
+    {
+        $this
+            ->if($tagsGet = $car->getTag())
+            ->integer(count($tagsGet))->isEqualTo(3)
+            ->string($tagsGet[0]->libTag)->isEqualTo($tags[0]->libTag)
+            ->string($tagsGet[1]->libTag)->isEqualTo($tags[1]->libTag)
+            ->string($tagsGet[2]->libTag)->isEqualTo($tags[2]->libTag);
     }
 
     /**
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
-    public function testOneToManyRelationCreation($testBrand,$testCars) {
-
-        $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM cars WHERE idBrand = ?');
-        $req -> execute(array($testBrand -> idBrand));
-        $res = $req->fetch(\PDO::FETCH_ASSOC);
-        $this -> variable($res['nb'])->isEqualTo('3');
+    public function testOneToManyRelationCreation($testBrand, $testCars, $resultBDD)
+    {
+        $this->if($testBrand instanceof \Brand)
+            ->and(!is_array($testCars))
+            ->string($resultBDD['nb'])->isEqualTo('3');
     }
 
     /**
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
-    public function testOneToManyRelation($testBrand,$testCars) {
+    public function testOneToManyRelation($testBrand, $testCars, $resultBDD)
+    {
 
-        $cars = $testBrand -> getCar();
-        $this -> variable($cars[0]->nameCar)->isEqualTo($testCars[0]->nameCar);
-        $this -> variable($cars[1]->nameCar)->isEqualTo($testCars[1]->nameCar);
-        $this -> variable($cars[2]->nameCar)->isEqualTo($testCars[2]->nameCar);
+        $this
+            ->if($cars = $testBrand->getCar())
+            ->then
+            ->string($cars[0]->nameCar)->isEqualTo($testCars[0]->nameCar)
+            ->string($cars[1]->nameCar)->isEqualTo($testCars[1]->nameCar)
+            ->string($cars[2]->nameCar)->isEqualTo($testCars[2]->nameCar);
     }
 
     /**
      * @dataProvider createAndSaveRawModelWithOneToOneRelation
      */
-    public function testOneToOneRelationCreation($testBrand,$car) {
-        // test insert
-        $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM cars WHERE idBrand = ? AND idCar = ?');
-        $req -> execute(array($testBrand -> idBrand, $car -> idCar));
-        $res = $req->fetch(\PDO::FETCH_ASSOC);
-        $this -> variable($res['nb'])->isEqualTo('1');
+    public function testOneToOneRelationCreation($testBrand, $car, $dbRes)
+    {
+        $this
+            ->string($dbRes['nb'])->isEqualTo('1');
     }
 
     /**
      * @dataProvider createAndSaveRawModelWithOneToOneRelation
      */
-    public function testOneToOneRelation($testBrand,$car) {
-        // test get relation
-        $brand = $car -> getBrand();
-        $this -> variable($brand->nameBrand)->isEqualTo($testBrand->nameBrand);
-
-        // test autoget field
-        $car = \Car::findOne(array('idCar'=> $car->idCar));
-        $this -> variable($car->nameBrand)->isEqualTo($testBrand->nameBrand);
+    public function testOneToOneRelation($testBrand, $car, $dbRes)
+    {
+        $this
+            // test get relation
+            ->string($car->getBrand()->nameBrand)
+            ->isEqualTo($testBrand->nameBrand)
+            // test autoget field
+            ->string(\Car::findOne(array('idCar' => $car->idCar))->nameBrand)
+            ->isEqualTo($testBrand->nameBrand);
     }
 
     /**
-     * @dataProvider createAndSaveRawModel
+     * @dataProvider createAndSaveRawModelForUpdateDelete
      */
-    public function testDeleteModel($testBrand) {
-        $idBrand = $testBrand -> idBrand;
-        $testBrand -> delete();
+    public function testDeleteModel($testBrand)
+    {
+
+        $this
+            ->if($testBrand->delete());
 
         $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM brands WHERE idBrand = ?');
-        $req -> execute(array($idBrand));
+        $req->execute(array($testBrand->idBrand));
         $res = $req->fetch(\PDO::FETCH_ASSOC);
 
-        $this -> variable($res['nb'])->isEqualTo("0");
+        $this
+            ->string($res['nb'])->isEqualTo("0")
+            ->boolean($testBrand->isNew())->isEqualTo(true);
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModelForUpdateDelete
+     */
+    public function testUpdateModel($testBrand)
+    {
+        $this
+            ->if($testBrand->nameBrand = 'NEWNAME!')
+            ->and($testBrand->noteBrand = '5')
+            ->boolean($testBrand->save())->isEqualTo(true);
+
+        $req = \PicORM\Model::getDataSource()->prepare('SELECT * FROM brands WHERE idBrand = ?');
+        $req->execute(array($testBrand->idBrand));
+        $res = $req->fetch(\PDO::FETCH_ASSOC);
+
+
+        $this->string($res['nameBrand'])->isEqualTo('NEWNAME!')
+            ->string($res['noteBrand'])->isEqualTo('5');
     }
 
     /**
      * @dataProvider createAndSaveRawModel
      */
-    public function testUpdateModel($testBrand) {
-
-        $idBrand = $testBrand -> idBrand;
-        $testBrand -> nameBrand = 'NEWNAME!';
-        $testBrand -> noteBrand = '5';
-        $testBrand -> save();
-
-        $req = \PicORM\Model::getDataSource()->prepare('SELECT * FROM brands WHERE idBrand = ?');
-        $req -> execute(array($idBrand));
-        $res = $req->fetch(\PDO::FETCH_ASSOC);
-
-        $this -> variable($res['nameBrand'])->isEqualTo('NEWNAME!');
-        $this -> variable($res['noteBrand'])->isEqualTo('5');
-    }
-
-    /**
-     * @dataProvider createAndSaveRawModel
-     */
-    public function testCreateModel($testBrand) {
-
-        $req = \PicORM\Model::getDataSource()->prepare('SELECT * FROM brands WHERE idBrand = ?');
-        $req -> execute(array($testBrand -> idBrand));
-        $res = $req->fetch(\PDO::FETCH_ASSOC);
-
-        $this -> variable($res['nameBrand'])->isEqualTo('Acme');
-        $this -> variable($res['noteBrand'])->isEqualTo(10);
+    public function testCreateModel($testBrand, $bddResult)
+    {
+        $this
+            ->boolean($testBrand->isNew())->isEqualTo(false)
+            ->variable($testBrand->idBrand)->isNotEqualTo(null)
+            ->variable($bddResult)->isNotEqualTo(false)
+            ->string($bddResult['nameBrand'])->isEqualTo('Acme')
+            ->string($bddResult['noteBrand'])->isEqualTo('10');
     }
 }

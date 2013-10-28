@@ -159,7 +159,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         $this->entities[$index] = $model;
     }
 
-// iterator methods
+// iterator and array interfaces methods
 
     /**
      * Rewind method allow to lazy fetch collection
