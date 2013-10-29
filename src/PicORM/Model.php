@@ -72,7 +72,7 @@ abstract class Model
      * Can declare model relations with calling
      * ::addRelationOneToOne()
      * ::addRelationOneToMany()
-     * @return mixed
+     * @throws Exception
      */
     protected static function defineRelations()
     {
@@ -416,7 +416,7 @@ abstract class Model
      * @param $sourceField           - model source field
      * @param $classRelation         - relation model name
      * @param $targetField           - related model field
-     * @param $relationTable         - mysql table containing the two entities ID
+     * @param $relationTable         - mysql table containing the two models ID
      * @param string $aliasRelation  - override relation auto naming className
      * @throws Exception
      */
@@ -522,7 +522,7 @@ abstract class Model
     }
 
     /**
-     * Build an InternalQueryHelper to select entities
+     * Build an InternalQueryHelper to select models
      * @param array $fields - selected fields
      * @param array $where - associative array ex:
      *             simple criteria       array('idMarque' => 1)

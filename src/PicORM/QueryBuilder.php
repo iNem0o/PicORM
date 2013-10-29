@@ -153,6 +153,7 @@ class QueryBuilder
      * Create new values for insert multiple
      * @param $nameParams
      * @param $val
+     * @return $this
      */
     public function newValues($nameParams, $val) {
         if(count($this -> _lastInsertValues) > 0) $this -> _insertValues[] = $this -> _lastInsertValues;

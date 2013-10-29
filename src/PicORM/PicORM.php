@@ -34,6 +34,7 @@ class PicORM
     /**
      * Set PicORM global configuration
      * @param array $configuration
+     * @throws Exception
      */
     final public static function configure(array $configuration)
     {

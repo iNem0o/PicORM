@@ -15,10 +15,10 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     protected $position = 0;
 
     /**
-     * Entities array
+     * Models
      * @var array
      */
-    protected $entities = array();
+    protected $models = array();
 
     /**
      * Boolean to test if collection have been already fetched
@@ -51,7 +51,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-     * Execute query and fetch entities from database
+     * Execute query and fetch models from database
      * @return $this
      * @throws Exception
      */
@@ -71,7 +71,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
             $object->hydrate($unRes);
             $unRes = $object;
         }
-        $this->entities = $fetch;
+        $this->models = $fetch;
 
         $this->isFetched = true;
         return $this;
@@ -98,7 +98,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-     * Update entities in collection with specified values
+     * Update models in collection with specified values
      * @param array $setValues
      * @throws Exception
      */
@@ -129,34 +129,34 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Return an element from collection by index
-     * @param $id
-     * @return mixed
+     * @param $index
+     * @return Model
      */
     public function get($index)
     {
         if (!$this->isFetched) $this->fetchCollection();
-        return $this->entities[$index];
+        return $this->models[$index];
     }
 
     /**
      * Test if collection has element at this $index
-     * @param $id
+     * @param $index
      * @return bool
      */
     public function has($index)
     {
         if (!$this->isFetched) $this->fetchCollection();
-        return isset($this->entities[$index]);
+        return isset($this->models[$index]);
     }
 
     /**
      * Set collection element with $model at $index
-     * @param $id
+     * @param $index
      * @param $model
      */
     public function set($index, $model)
     {
-        $this->entities[$index] = $model;
+        $this->models[$index] = $model;
     }
 
 // iterator and array interfaces methods
@@ -173,7 +173,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     public function current()
     {
-        return $this->entities[$this->position];
+        return $this->models[$this->position];
     }
 
     public function key()
@@ -188,37 +188,37 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     public function valid()
     {
-        return isset($this->entities[$this->position]);
+        return isset($this->models[$this->position]);
     }
 
     public function count() {
         if (!$this->isFetched) $this->fetchCollection();
 
-        return count($this->entities);
+        return count($this->models);
     }
 
     public function offsetSet($offset, $value) {
         if (!$this->isFetched) $this->fetchCollection();
 
         if (is_null($offset))
-            $this->entities[] = $value;
+            $this->models[] = $value;
         else
-            $this->entities[$offset] = $value;
+            $this->models[$offset] = $value;
     }
     public function offsetExists($offset) {
         if (!$this->isFetched) $this->fetchCollection();
 
-        return isset($this->entities[$offset]);
+        return isset($this->models[$offset]);
     }
     public function offsetUnset($offset) {
         if (!$this->isFetched) $this->fetchCollection();
 
-        unset($this->entities[$offset]);
+        unset($this->models[$offset]);
     }
     public function offsetGet($offset) {
         if (!$this->isFetched) $this->fetchCollection();
 
-        return isset($this->entities[$offset]) ? $this->entities[$offset] : null;
+        return isset($this->models[$offset]) ? $this->models[$offset] : null;
     }
 }
 
