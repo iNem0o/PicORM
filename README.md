@@ -117,7 +117,7 @@ and then, add one public property by table field with ``public $fieldName``
 
 ## find() and findOne()
 Every subclass of ``Entity`` inherit of static methods ``find()`` and ``findOne()``.<br>
-Theses methods are used to create entities from database rows.
+Theses methods are used to create models from database rows.
 
 ```php
 /**
@@ -194,7 +194,7 @@ An \PicORM\Collection instance can execute UPDATE and DELETE queries on the coll
 this way using ``update()`` or ``delete()`` method produce only one MySQL query based on ``find()`` restriction parameters.
 
 ```php
-// Delete all entities in collection
+// Delete all models in collection
     $collection = Brand::find(array('noteBrand' => 10))
                          -> delete();
 
@@ -204,7 +204,7 @@ this way using ``update()`` or ``delete()`` method produce only one MySQL query 
 						 
 ```
 
-## Relations between entities
+## Relations between models
 Using relations will need you to add a property and a method to your model subclass.<br>
 ``protected static $_relations = array();``  needed to be implemented to store model relations
 ``protected static function defineRelations() { }`` method to declare your relation
@@ -238,7 +238,7 @@ protected static function addRelationOneToMany($sourceField, $classRelation, $ta
  * @param $sourceField           - model source field
  * @param $classRelation         - relation model name
  * @param $targetField           - related model field
- * @param $relationTable         - mysql table containing the two entities ID
+ * @param $relationTable         - mysql table containing the two models ID
  * @param string $aliasRelation  - override relation auto naming className
  */
 protected static function addRelationManyToMany($sourceField, $classRelation, $targetField, $relationTable, $aliasRelation = '')
@@ -274,7 +274,7 @@ CREATE TABLE `tags` (
 ) ENGINE = MYISAM ;
 ```
 
-First you have to declare your 3 entities and their relations
+First you have to declare your 3 models and their relations
 
 ```php
 class Brand extends Model
@@ -349,7 +349,7 @@ class Tag extends Model
 }
 ```
 
-Now you can start to create and manipulates related entities
+Now you can start to create and manipulates related models
 
 ```php
 
@@ -431,12 +431,12 @@ Changelog
 - Initial release
 
 #### UNSTABLE 0.0.2
-- Bugfixes
+- Bug fixes
 - Add namespace support and pdo fetch mode selection
 - Add transaction support
 
 #### BETA 0.0.3
-- Bugfixes
+- Bug fixes
 - Refactoring MySQL
 - Collections
 - Tests

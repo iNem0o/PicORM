@@ -18,10 +18,11 @@ class InternalQueryHelper extends atoum {
             'field3' => 'data'
         );
 
-        $newWhere = $internalQueryBuilder -> prefixWhereWithTable($where,'tablename');
-        $this -> boolean(isset($newWhere['tablename.field1']))->isEqualTo(true)
-              -> boolean(isset($newWhere['tablename.field2']))->isEqualTo(true)
-              -> boolean(isset($newWhere['tablename.field3']))->isEqualTo(true);
+        $this
+              ->if($newWhere = $internalQueryBuilder -> prefixWhereWithTable($where,'tablename'))
+              ->boolean(isset($newWhere['tablename.field1']))->isEqualTo(true)
+              ->boolean(isset($newWhere['tablename.field2']))->isEqualTo(true)
+              ->boolean(isset($newWhere['tablename.field3']))->isEqualTo(true);
     }
     /**
      * @dataProvider createInternalQueryHelper
@@ -33,12 +34,11 @@ class InternalQueryHelper extends atoum {
             'RAND()' => ''
         );
 
-        $newOrder = $internalQueryBuilder -> prefixOrderWithTable($order,'tablename');
-
         $this
-            -> boolean(isset($newOrder['tablename.field1']))->isEqualTo(true)
-            -> boolean(isset($newOrder['tablename.field2']))->isEqualTo(true)
-            -> boolean(isset($newOrder['RAND()']))->isEqualTo(true);
+            ->if($newOrder = $internalQueryBuilder -> prefixOrderWithTable($order,'tablename'))
+            ->boolean(isset($newOrder['tablename.field1']))->isEqualTo(true)
+            ->boolean(isset($newOrder['tablename.field2']))->isEqualTo(true)
+            ->boolean(isset($newOrder['RAND()']))->isEqualTo(true);
     }
 
     /**

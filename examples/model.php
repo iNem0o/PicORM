@@ -1,10 +1,8 @@
 <?php
 require('../src/autoload.inc.php');
 
-use PicORM\Model;
-
 try {
-    PicORM::configure(array(
+    \PicORM\PicORM::configure(array(
         'datasource' => new PDO('mysql:dbname=DBNAME;host=HOST', 'DBLOGIN', 'DBPASSWD')
     ));
 
