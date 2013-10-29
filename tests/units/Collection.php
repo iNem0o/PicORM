@@ -1,14 +1,15 @@
 <?php
 namespace PicORM\tests\units;
 use \atoum;
+use PicORM\Model;
 
 class Collection extends atoum {
 
     public static function cleanTables() {
-        \PicORM\Model::getDataSource()->query('TRUNCATE brands');
-        \PicORM\Model::getDataSource()->query('TRUNCATE cars');
-        \PicORM\Model::getDataSource()->query('TRUNCATE car_have_tag');
-        \PicORM\Model::getDataSource()->query('TRUNCATE tags');
+        Model::getDataSource()->query('TRUNCATE brands');
+        Model::getDataSource()->query('TRUNCATE cars');
+        Model::getDataSource()->query('TRUNCATE car_have_tag');
+        Model::getDataSource()->query('TRUNCATE tags');
     }
 
     public static function createAndSaveRawModelWithOneToManyRelation() {
@@ -62,7 +63,7 @@ class Collection extends atoum {
 
         $testBrand->getCar()->update(array('nameCar' => 'test'));
 
-        $req = \PicORM\Model::getDataSource()->prepare('
+        $req = Model::getDataSource()->prepare('
             SELECT count(*) as nb FROM cars WHERE nameCar = ?
         ');
         $req -> execute(array('test'));
@@ -72,7 +73,7 @@ class Collection extends atoum {
 
         $testBrand->getCar()->update(array('nameCar' => 'test'));
 
-        $req = \PicORM\Model::getDataSource()->prepare('
+        $req = Model::getDataSource()->prepare('
             SELECT count(*) as nb FROM cars WHERE nameCar = ?
         ');
         $req -> execute(array('test'));
