@@ -8,6 +8,8 @@ namespace PicORM;
  */
 class Collection implements \Iterator, \Countable, \ArrayAccess
 {
+    protected $_calcFoundRows = false;
+
     /**
      * Iterator pointer position
      * @var int
@@ -58,6 +60,9 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function fetchCollection()
     {
         $modelName = $this->_className;
+        if($this -> _calcFoundRows) {
+            $this->_queryHelper->queryModifier("SQL_CALC_FOUND_ROWS");
+        }
         $query = $this->_dataSource->prepare($this->_queryHelper->buildQuery());
         $query->execute($this->_queryHelper->getWhereParamsValues());
 
@@ -75,6 +80,10 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
         $this->isFetched = true;
         return $this;
+    }
+
+    public function activeFoundRows() {
+        $this -> _calcFoundRows = true;
     }
 
     /**
@@ -136,6 +145,12 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     {
         if (!$this->isFetched) $this->fetchCollection();
         return $this->models[$index];
+
+    }
+
+    public function foundRows() {
+        if (!$this->isFetched) $this->fetchCollection();
+        return $this->_dataSource->query('SELECT FOUND_ROWS() as nbrows;')->fetch(\PDO::FETCH_COLUMN);
     }
 
     /**

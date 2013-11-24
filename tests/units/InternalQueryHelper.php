@@ -60,7 +60,7 @@ class InternalQueryHelper extends atoum {
                );
         $resParams = $selectInternalQueryBuilder -> getWhereParamsValues();
 
-        $resultQuery = "SELECT * FROM tableName   WHERE id = ? AND text = ? AND datetime = NOW() AND libelle LIKE CONCAT('%',?,'%')";
+        $resultQuery = "SELECT  * FROM tableName   WHERE id = ? AND text = ? AND datetime = NOW() AND libelle LIKE CONCAT('%',?,'%')";
         $this -> string($selectInternalQueryBuilder->buildQuery())->isEqualTo($resultQuery)
               -> integer($resParams[0])->isEqualTo(1)
               -> string($resParams[1])->isEqualTo('hello world');

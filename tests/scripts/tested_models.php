@@ -1,4 +1,17 @@
 <?php
+class TestModel extends \PicOrm\Model {
+    protected static $_databaseName = 'testbddmodel';
+    protected static $_tableName = 'testmodel';
+    protected static $_primaryKey = "idTestModel";
+    protected static $_relations = array();
+
+    protected static $_tableFields = array(
+        'testField'
+    );
+
+    public $idTestModel;
+    public $testField;
+}
 class BrandModel extends \PicOrm\Model
 {
     protected static $_tableName = 'brands';

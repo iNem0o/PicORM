@@ -533,7 +533,7 @@ abstract class Model
      * @param int $limitEnd - int
      * @return InternalQueryHelper
      */
-    public static function buildSelectQuery($fields = array('*'), $where = array(), $order = array(), $limitStart = null, $limitEnd = null)
+    protected static function buildSelectQuery($fields = array('*'), $where = array(), $order = array(), $limitStart = null, $limitEnd = null)
     {
         $modelTableName = static::formatTableNameMySQL();
 

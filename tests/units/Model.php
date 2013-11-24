@@ -5,7 +5,7 @@ use \atoum;
 
 class Model extends atoum
 {
-    public function tearDown()
+    public function afterTestMethod($testMethod)
     {
         \PicORM\Model::getDataSource()->query('TRUNCATE brands');
         \PicORM\Model::getDataSource()->query('TRUNCATE cars');
@@ -16,7 +16,7 @@ class Model extends atoum
     //// DATA PROVIDERS /////
     public static function createAndSaveRawModel()
     {
-        include_once __DIR__ . '/../scripts/raw_models.php';
+        include_once __DIR__ . '/../scripts/tested_models.php';
         $testBrand = new \Brand();
         $testBrand->nameBrand = 'Acme';
         $testBrand->noteBrand = 10;
@@ -32,7 +32,7 @@ class Model extends atoum
 
     public static function createAndSaveRawModelForUpdateDelete()
     {
-        include_once __DIR__ . '/../scripts/raw_models.php';
+        include_once __DIR__ . '/../scripts/tested_models.php';
         $testBrand = new \Brand();
         $testBrand->nameBrand = 'Acme';
         $testBrand->noteBrand = 10;
@@ -44,7 +44,7 @@ class Model extends atoum
 
     public static function createAndSaveRawModelWithOneToOneRelation()
     {
-        include_once __DIR__ . '/../scripts/raw_models.php';
+        include_once __DIR__ . '/../scripts/tested_models.php';
 
         $testBrand = new \Brand();
         $testBrand->nameBrand = 'Acme';
@@ -68,7 +68,7 @@ class Model extends atoum
 
     public static function createAndSaveRawModelWithManyToManyRelation()
     {
-        include_once __DIR__ . '/../scripts/raw_models.php';
+        include_once __DIR__ . '/../scripts/tested_models.php';
 
         $car = new \Car();
         $car->nameCar = 'AcmeCar';
@@ -106,7 +106,7 @@ class Model extends atoum
 
     public static function createAndSaveRawModelWithOneToManyRelation()
     {
-        include_once __DIR__ . '/../scripts/raw_models.php';
+        include_once __DIR__ . '/../scripts/tested_models.php';
 
         $testBrand = new \Brand();
         $testBrand->nameBrand = 'AcmeMult';
@@ -257,5 +257,80 @@ class Model extends atoum
             ->variable($bddResult)->isNotEqualTo(false)
             ->string($bddResult['nameBrand'])->isEqualTo('Acme')
             ->string($bddResult['noteBrand'])->isEqualTo('10');
+    }
+
+    public function testFormatClassnameToRelationName() {
+        $method = new \ReflectionMethod('\PicORM\Model', 'formatClassnameToRelationName');
+        $method->setAccessible(true);
+
+        $this -> string($method->invoke(null,'Class'))->isEqualTo('class');
+        $this -> string($method->invoke(null,'Namespace\To\The\Class'))->isEqualTo('class');
+    }
+
+    public function testFormatDatabaseNameMySQL() {
+        $this -> string(\TestModel::formatDatabaseNameMySQL())->isEqualTo('`testbddmodel`.');
+    }
+
+    public function testFormatTableNameMySQL() {
+        $this -> string(\TestModel::formatTableNameMySQL())->isEqualTo('`testbddmodel`.`testmodel`');
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModel
+     */
+    public function test__toJson($testBrand, $bddResult) {
+        $this -> string($testBrand->__toJson())
+                    -> isEqualTo('{"idBrand":"1","nameBrand":"Acme","noteBrand":10}');
+    }
+
+
+    /**
+     * @dataProvider createAndSaveRawModelWithManyToManyRelation
+     */
+    public function testUnsetRelation($car, $tags, $resultBDD) {
+        $car -> unsetTag($tags);
+
+        $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM car_have_tag WHERE idCar = ?');
+        $req->execute(array($car->idCar));
+        $resultBDD = $req->fetch(\PDO::FETCH_ASSOC);
+
+        $this -> string($resultBDD['nb']) -> isEqualTo("0");
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToOneRelation
+     */
+    public function testAddRelationOneToOne($testBrand, $car, $dbRes) {
+        $class = new \ReflectionClass(get_class($car));
+
+        $property = $class->getProperty("_relations");
+        $property->setAccessible(true);
+        $relations = $property->getValue();
+
+        $this -> boolean(isset($relations['brand'])) -> isEqualTo(true)
+              -> integer($relations['brand']['typeRelation']) -> isEqualTo(\PicORM\Model::ONE_TO_ONE)
+              -> string($relations['brand']['classRelation']) -> isEqualTo('Brand')
+              -> string($relations['brand']['sourceField']) -> isEqualTo('idBrand')
+              -> string($relations['brand']['targetField']) -> isEqualTo('idBrand')
+              -> boolean(is_array($relations['brand']['autoGetFields'])) -> isEqualTo(true)
+              -> boolean(count($relations['brand']['autoGetFields']) == 1) -> isEqualTo(true)
+              -> string($relations['brand']['autoGetFields'][0]) -> isEqualTo("nameBrand");
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
+    public function testAddRelationOneToMany($testBrand, $cars, $resultBDD) {
+        $class = new \ReflectionClass(get_class($testBrand));
+
+        $property = $class->getProperty("_relations");
+        $property->setAccessible(true);
+        $relations = $property->getValue();
+
+        $this -> boolean(isset($relations['car'])) -> isEqualTo(true)
+              -> integer($relations['car']['typeRelation']) -> isEqualTo(\PicORM\Model::ONE_TO_MANY)
+              -> string($relations['car']['classRelation']) -> isEqualTo('Car')
+              -> string($relations['car']['sourceField']) -> isEqualTo('idBrand')
+              -> string($relations['car']['targetField']) -> isEqualTo('idBrand');
     }
 }

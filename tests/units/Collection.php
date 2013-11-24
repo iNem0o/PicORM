@@ -5,7 +5,7 @@ use PicORM\Model;
 
 class Collection extends atoum {
 
-    public static function cleanTables() {
+    public function afterTestMethod($testMethod) {
         Model::getDataSource()->query('TRUNCATE brands');
         Model::getDataSource()->query('TRUNCATE cars');
         Model::getDataSource()->query('TRUNCATE car_have_tag');
@@ -13,8 +13,7 @@ class Collection extends atoum {
     }
 
     public static function createAndSaveRawModelWithOneToManyRelation() {
-        self::cleanTables();
-        include_once __DIR__ . '/../scripts/raw_models.php';
+        include_once __DIR__ . '/../scripts/tested_models.php';
 
         $testBrand = new \Brand();
         $testBrand -> nameBrand = 'AcmeMult';
@@ -46,7 +45,7 @@ class Collection extends atoum {
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testDeleteCollection($testBrand,$cars) {
-        include_once __DIR__ . '/../scripts/raw_models.php';
+        include_once __DIR__ . '/../scripts/tested_models.php';
 
         $this -> integer(count($testBrand->getCar()))->isEqualTo(3);
 
@@ -59,7 +58,7 @@ class Collection extends atoum {
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testUpdateCollection($testBrand,$cars) {
-        include_once __DIR__ . '/../scripts/raw_models.php';
+        include_once __DIR__ . '/../scripts/tested_models.php';
 
         $testBrand->getCar()->update(array('nameCar' => 'test'));
 

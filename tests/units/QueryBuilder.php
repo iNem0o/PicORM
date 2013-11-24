@@ -144,9 +144,8 @@ class QueryBuilder extends atoum {
     {
 
         $selectQueryBuilder -> select('*') -> from('tableName');
-        $resultQuery = 'SELECT * FROM tableName';
+        $resultQuery = 'SELECT  * FROM tableName';
         $this -> string($selectQueryBuilder -> buildQuery()) -> isEqualTo($resultQuery);
-
         $selectQueryBuilder -> innerJoin('tableName2','tableName.field = tableName2.field');
         $resultQuery .= '  INNER JOIN tableName2 ON tableName.field = tableName2.field';
         $this -> string($selectQueryBuilder -> buildQuery()) -> isEqualTo($resultQuery);
