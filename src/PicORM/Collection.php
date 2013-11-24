@@ -8,7 +8,23 @@ namespace PicORM;
  */
 class Collection implements \Iterator, \Countable, \ArrayAccess
 {
-    protected $_calcFoundRows = false;
+    /**
+     * Active or not pagination
+     * @var bool
+     */
+    protected $_usePagination = false;
+
+    /**
+     * Number of model by page
+     * @var int
+     */
+    protected $_paginationNbModelByPage = 0;
+
+    /**
+     * Total models rows founded during pagination
+     * @var int
+     */
+    protected $_paginationFoundRows = 0;
 
     /**
      * Iterator pointer position
@@ -60,7 +76,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function fetchCollection()
     {
         $modelName = $this->_className;
-        if($this -> _calcFoundRows) {
+        if($this -> _usePagination) {
             $this->_queryHelper->queryModifier("SQL_CALC_FOUND_ROWS");
         }
         $query = $this->_dataSource->prepare($this->_queryHelper->buildQuery());
@@ -76,14 +92,12 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
             $object->hydrate($unRes);
             $unRes = $object;
         }
-        $this->models = $fetch;
-
         $this->isFetched = true;
+        $this->models = $fetch;
+        if($this->_usePagination) {
+            $this->_paginationFoundRows = $this->foundRows();
+        }
         return $this;
-    }
-
-    public function activeFoundRows() {
-        $this -> _calcFoundRows = true;
     }
 
     /**
@@ -148,6 +162,41 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     }
 
+    /**
+     * Return total page available
+     * @return float
+     */
+    public function getTotalPages() {
+        if($this -> _usePagination === false) return;
+        if (!$this->isFetched) $this->fetchCollection();
+
+        return ceil($this->_paginationFoundRows / $this->_paginationNbModelByPage);
+    }
+
+    /**
+     * Paginate collection to match a num page
+     * @param $neededNumPage
+     */
+    public function paginate($neededNumPage) {
+        if($this -> _usePagination === false) return;
+        $limitStart = max(0,$neededNumPage-1) * $this -> _paginationNbModelByPage;
+
+        $this -> _queryHelper -> limit($limitStart,$this->_paginationNbModelByPage);
+    }
+
+    /**
+     * Enable pagination in collection
+     * @param $nbModelByPage
+     */
+    public function activePagination($nbModelByPage) {
+        $this -> _usePagination = true;
+        $this -> _paginationNbModelByPage = $nbModelByPage;
+    }
+
+    /**
+     * Fetch the mysql found_rows from last select query
+     * @return mixed
+     */
     public function foundRows() {
         if (!$this->isFetched) $this->fetchCollection();
         return $this->_dataSource->query('SELECT FOUND_ROWS() as nbrows;')->fetch(\PDO::FETCH_COLUMN);
