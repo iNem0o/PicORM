@@ -184,6 +184,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         $this -> _queryHelper -> limit($limitStart,$this->_paginationNbModelByPage);
     }
 
+    
     /**
      * Enable pagination in collection
      * @param $nbModelByPage
