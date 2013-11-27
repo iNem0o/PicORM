@@ -168,7 +168,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
      */
     public function getTotalPages()
     {
-        if ($this->_usePagination === false) return;
+        if ($this->_usePagination === false) return 0;
         if (!$this->isFetched) $this->fetchCollection();
 
         return (int)ceil($this->_paginationFoundRows / $this->_paginationNbModelByPage);
@@ -204,7 +204,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function foundRows()
     {
         if (!$this->isFetched) $this->fetchCollection();
-        return (int)$this->_dataSource->query('SELECT FOUND_ROWS() as nbrows;')->fetch(\PDO::FETCH_COLUMN);
+        return (int)$this->_dataSource->query('SELECT FOUND_ROWS();')->fetch(\PDO::FETCH_COLUMN);
     }
 
     /**

@@ -139,8 +139,12 @@ class QueryBuilder
         return trim($query);
     }
 
-    public function queryModifier($querymodifier) {
-        $this -> _queryModifier = $querymodifier;
+    /**
+     * Set the query hint modifier
+     * @param $queryModifier
+     */
+    public function queryModifier($queryModifier) {
+        $this -> _queryModifier = $queryModifier;
     }
 
     /**
@@ -365,7 +369,7 @@ class QueryBuilder
      */
     public function limit($limitStart, $limitEnd = null)
     {
-        if($limitStart === null) return;
+        if($limitStart === null) return $this;
 
         if ($limitEnd === null)
             $this->_limit = sprintf('LIMIT %d', $limitStart);
