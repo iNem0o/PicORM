@@ -81,5 +81,24 @@ class Collection extends atoum {
         $this -> string($res['nb'])->isEqualTo('3');
     }
 
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
+    public function testPagination($testBrand,$cars) {
+        self::createAndSaveRawModelWithOneToManyRelation();
+        self::createAndSaveRawModelWithOneToManyRelation();
+        self::createAndSaveRawModelWithOneToManyRelation();
+        self::createAndSaveRawModelWithOneToManyRelation();
+        self::createAndSaveRawModelWithOneToManyRelation();
+        include_once __DIR__ . '/../scripts/tested_models.php';
+
+        $collection = \Car::find();
+        $collection->activePagination(5);
+        $collection->paginate(1);
+
+        $this -> integer($collection->getTotalPages())->isEqualTo(4);
+        $this -> integer(count($collection))->isEqualTo(5);
+    }
+
 
 }

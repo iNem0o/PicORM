@@ -76,7 +76,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function fetchCollection()
     {
         $modelName = $this->_className;
-        if($this -> _usePagination) {
+        if ($this->_usePagination) {
             $this->_queryHelper->queryModifier("SQL_CALC_FOUND_ROWS");
         }
         $query = $this->_dataSource->prepare($this->_queryHelper->buildQuery());
@@ -94,7 +94,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         }
         $this->isFetched = true;
         $this->models = $fetch;
-        if($this->_usePagination) {
+        if ($this->_usePagination) {
             $this->_paginationFoundRows = $this->foundRows();
         }
         return $this;
@@ -166,41 +166,45 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
      * Return total page available
      * @return float
      */
-    public function getTotalPages() {
-        if($this -> _usePagination === false) return;
+    public function getTotalPages()
+    {
+        if ($this->_usePagination === false) return;
         if (!$this->isFetched) $this->fetchCollection();
 
-        return ceil($this->_paginationFoundRows / $this->_paginationNbModelByPage);
+        return (int)ceil($this->_paginationFoundRows / $this->_paginationNbModelByPage);
     }
 
     /**
      * Paginate collection to match a num page
      * @param $neededNumPage
      */
-    public function paginate($neededNumPage) {
-        if($this -> _usePagination === false) return;
-        $limitStart = max(0,$neededNumPage-1) * $this -> _paginationNbModelByPage;
+    public function paginate($neededNumPage)
+    {
+        if ($this->_usePagination === false) return;
+        $limitStart = max(0, $neededNumPage - 1) * $this->_paginationNbModelByPage;
 
-        $this -> _queryHelper -> limit($limitStart,$this->_paginationNbModelByPage);
+        $this->_queryHelper->limit($limitStart, $this->_paginationNbModelByPage);
     }
 
-    
+
     /**
      * Enable pagination in collection
      * @param $nbModelByPage
      */
-    public function activePagination($nbModelByPage) {
-        $this -> _usePagination = true;
-        $this -> _paginationNbModelByPage = $nbModelByPage;
+    public function activePagination($nbModelByPage)
+    {
+        $this->_usePagination = true;
+        $this->_paginationNbModelByPage = $nbModelByPage;
     }
 
     /**
      * Fetch the mysql found_rows from last select query
      * @return mixed
      */
-    public function foundRows() {
+    public function foundRows()
+    {
         if (!$this->isFetched) $this->fetchCollection();
-        return $this->_dataSource->query('SELECT FOUND_ROWS() as nbrows;')->fetch(\PDO::FETCH_COLUMN);
+        return (int)$this->_dataSource->query('SELECT FOUND_ROWS() as nbrows;')->fetch(\PDO::FETCH_COLUMN);
     }
 
     /**
@@ -256,13 +260,15 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         return isset($this->models[$this->position]);
     }
 
-    public function count() {
+    public function count()
+    {
         if (!$this->isFetched) $this->fetchCollection();
 
         return count($this->models);
     }
 
-    public function offsetSet($offset, $value) {
+    public function offsetSet($offset, $value)
+    {
         if (!$this->isFetched) $this->fetchCollection();
 
         if (is_null($offset))
@@ -270,17 +276,23 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         else
             $this->models[$offset] = $value;
     }
-    public function offsetExists($offset) {
+
+    public function offsetExists($offset)
+    {
         if (!$this->isFetched) $this->fetchCollection();
 
         return isset($this->models[$offset]);
     }
-    public function offsetUnset($offset) {
+
+    public function offsetUnset($offset)
+    {
         if (!$this->isFetched) $this->fetchCollection();
 
         unset($this->models[$offset]);
     }
-    public function offsetGet($offset) {
+
+    public function offsetGet($offset)
+    {
         if (!$this->isFetched) $this->fetchCollection();
 
         return isset($this->models[$offset]) ? $this->models[$offset] : null;
