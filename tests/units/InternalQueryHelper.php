@@ -18,10 +18,11 @@ class InternalQueryHelper extends atoum {
             'field3' => 'data'
         );
 
-        $newWhere = $internalQueryBuilder -> prefixWhereWithTable($where,'tablename');
-        $this -> variable(isset($newWhere['tablename.field1']))->isEqualTo(true);
-        $this -> variable(isset($newWhere['tablename.field2']))->isEqualTo(true);
-        $this -> variable(isset($newWhere['tablename.field3']))->isEqualTo(true);
+        $this
+              ->if($newWhere = $internalQueryBuilder -> prefixWhereWithTable($where,'tablename'))
+              ->boolean(isset($newWhere['tablename.field1']))->isEqualTo(true)
+              ->boolean(isset($newWhere['tablename.field2']))->isEqualTo(true)
+              ->boolean(isset($newWhere['tablename.field3']))->isEqualTo(true);
     }
     /**
      * @dataProvider createInternalQueryHelper
@@ -33,30 +34,35 @@ class InternalQueryHelper extends atoum {
             'RAND()' => ''
         );
 
-        $newOrder = $internalQueryBuilder -> prefixOrderWithTable($order,'tablename');
-
-        $this -> variable(isset($newOrder['tablename.field1']))->isEqualTo(true);
-        $this -> variable(isset($newOrder['tablename.field2']))->isEqualTo(true);
-        $this -> variable(isset($newOrder['RAND()']))->isEqualTo(true);
+        $this
+            ->if($newOrder = $internalQueryBuilder -> prefixOrderWithTable($order,'tablename'))
+            ->boolean(isset($newOrder['tablename.field1']))->isEqualTo(true)
+            ->boolean(isset($newOrder['tablename.field2']))->isEqualTo(true)
+            ->boolean(isset($newOrder['RAND()']))->isEqualTo(true);
     }
 
     /**
      * @dataProvider createInternalQueryHelper
      */
     public function testBuildWhereFromArray($selectInternalQueryBuilder) {
-        $val = 1;
-        $selectInternalQueryBuilder -> select('*') -> from('tableName');
-        $resultQuery = "SELECT * FROM tableName   WHERE id = ? AND datetime = NOW() AND libelle LIKE CONCAT('%',?,'%')";
-        $selectInternalQueryBuilder -> buildWhereFromArray(array(
-            'id' => $val,
-            'datetime' => array('NOW()'),
-            'libelle' => array(
-                'operator' => 'LIKE',
-                'value' => array("CONCAT('%',?,'%')"),
-            ),
-        ));
+        $selectInternalQueryBuilder
+            -> select('*')
+            -> from('tableName')
+            -> buildWhereFromArray(array(
+                                    'id' => 1,
+                                    'text' => 'hello world',
+                                    'datetime' => array('NOW()'),
+                                    'libelle' => array(
+                                                'operator' => 'LIKE',
+                                                'value' => array("CONCAT('%',?,'%')")
+                                                )
+                                    )
+               );
         $resParams = $selectInternalQueryBuilder -> getWhereParamsValues();
-        $this -> variable($selectInternalQueryBuilder->buildQuery())->isEqualTo($resultQuery);
-        $this -> variable($resParams[0])->isEqualTo($val);
+
+        $resultQuery = "SELECT  * FROM tableName   WHERE id = ? AND text = ? AND datetime = NOW() AND libelle LIKE CONCAT('%',?,'%')";
+        $this -> string($selectInternalQueryBuilder->buildQuery())->isEqualTo($resultQuery)
+              -> integer($resParams[0])->isEqualTo(1)
+              -> string($resParams[1])->isEqualTo('hello world');
     }
 }

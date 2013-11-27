@@ -53,6 +53,7 @@ class QueryBuilder
     protected $_insert = '';
     protected $_update = '';
     protected $_delete = '';
+    protected $_queryModifier = '';
     protected $_from = '';
     protected $_join = array();
     protected $_where = array();
@@ -74,12 +75,13 @@ class QueryBuilder
         $groupBy = count($this->_groupBy) > 0 ? sprintf('GROUP BY %s', implode(',', $this->_groupBy)) : '';
         $limit = $this->_limit;
         $query = '';
+        $modifier = !empty($this -> _queryModifier) ? " ".$this -> _queryModifier." ":'';
         switch ($this->_queryType) {
             case self::SELECT:
                 $select = implode(',', $this->_select);
                 $from = !empty($this->_from) ? sprintf('FROM %s', $this->_from) : '';
-                $query = sprintf("SELECT %s %s %s %s %s %s %s %s",
-                    $select, $from, $join, $where, $groupBy, $this->_having, $orderBy, $limit);
+                $query = sprintf("SELECT %s %s %s %s %s %s %s %s %s",
+                    $modifier, $select, $from, $join, $where, $groupBy, $this->_having, $orderBy, $limit);
                 break;
             case self::INSERT:
                 $values = '';
@@ -137,6 +139,10 @@ class QueryBuilder
         return trim($query);
     }
 
+    public function queryModifier($querymodifier) {
+        $this -> _queryModifier = $querymodifier;
+    }
+
     /**
      * Add values (INSERT|UPDATE)
      * @param $nameParams
@@ -153,6 +159,7 @@ class QueryBuilder
      * Create new values for insert multiple
      * @param $nameParams
      * @param $val
+     * @return $this
      */
     public function newValues($nameParams, $val) {
         if(count($this -> _lastInsertValues) > 0) $this -> _insertValues[] = $this -> _lastInsertValues;
@@ -358,7 +365,7 @@ class QueryBuilder
      */
     public function limit($limitStart, $limitEnd = null)
     {
-        if (empty($limitStart)) return $this;
+        if($limitStart === null) return;
 
         if ($limitEnd === null)
             $this->_limit = sprintf('LIMIT %d', $limitStart);

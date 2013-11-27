@@ -2,12 +2,30 @@
 namespace PicORM;
 
 /**
- * Store an entity list defined by a InternalQueryHelper
+ * Store a model list defined by a InternalQueryHelper
  * and allow to fetch / modify / delete them
  * @package PicORM
  */
-class EntityCollection implements \Iterator, \Countable, \ArrayAccess
+class Collection implements \Iterator, \Countable, \ArrayAccess
 {
+    /**
+     * Active or not pagination
+     * @var bool
+     */
+    protected $_usePagination = false;
+
+    /**
+     * Number of model by page
+     * @var int
+     */
+    protected $_paginationNbModelByPage = 0;
+
+    /**
+     * Total models rows founded during pagination
+     * @var int
+     */
+    protected $_paginationFoundRows = 0;
+
     /**
      * Iterator pointer position
      * @var int
@@ -15,10 +33,10 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
     protected $position = 0;
 
     /**
-     * Entities array
+     * Models
      * @var array
      */
-    protected $entities = array();
+    protected $models = array();
 
     /**
      * Boolean to test if collection have been already fetched
@@ -33,7 +51,7 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
     protected $_dataSource;
 
     /**
-     * Entity class name
+     * Model class name
      * @var
      */
     private $_className;
@@ -51,13 +69,16 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-     * Execute query and fetch entities from database
+     * Execute query and fetch models from database
      * @return $this
      * @throws Exception
      */
     public function fetchCollection()
     {
-        $entityName = $this->_className;
+        $modelName = $this->_className;
+        if ($this->_usePagination) {
+            $this->_queryHelper->queryModifier("SQL_CALC_FOUND_ROWS");
+        }
         $query = $this->_dataSource->prepare($this->_queryHelper->buildQuery());
         $query->execute($this->_queryHelper->getWhereParamsValues());
 
@@ -67,28 +88,30 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
 
         $fetch = $query->fetchAll(\PDO::FETCH_ASSOC);
         foreach ($fetch as &$unRes) {
-            $object = new $entityName();
+            $object = new $modelName();
             $object->hydrate($unRes);
             $unRes = $object;
         }
-        $this->entities = $fetch;
-
         $this->isFetched = true;
+        $this->models = $fetch;
+        if ($this->_usePagination) {
+            $this->_paginationFoundRows = $this->foundRows();
+        }
         return $this;
     }
 
     /**
-     * Delete entity in collection
+     * Delete model in collection
      * @throws Exception
      */
     public function delete()
     {
-        $entityClass = $this->_className;
+        $modelClass = $this->_className;
 
         // cloning fetch query to get where,order by and limit values
         $deleteQuery = clone($this->_queryHelper);
         $deleteQuery->cleanQueryBeforeSwitching()
-            ->delete($entityClass::formatTableNameMySQL());
+            ->delete($modelClass::formatTableNameMySQL());
 
         $query = $this->_dataSource->prepare($deleteQuery->buildQuery());
         $query->execute($deleteQuery->getWhereParamsValues());
@@ -98,18 +121,18 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-     * Update entities in collection with specified values
+     * Update models in collection with specified values
      * @param array $setValues
      * @throws Exception
      */
     public function update(array $setValues)
     {
-        $entityClass = $this->_className;
+        $modelClass = $this->_className;
 
         // cloning fetch query to get where,order by and limit values
         $updateQuery = clone($this->_queryHelper);
         $updateQuery->cleanQueryBeforeSwitching()
-            ->update($entityClass::formatTableNameMySQL());
+            ->update($modelClass::formatTableNameMySQL());
 
         $params = array();
         foreach ($setValues as $fieldName => $value) {
@@ -129,37 +152,83 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Return an element from collection by index
-     * @param $id
-     * @return mixed
+     * @param $index
+     * @return Model
      */
     public function get($index)
     {
         if (!$this->isFetched) $this->fetchCollection();
-        return $this->entities[$index];
+        return $this->models[$index];
+
+    }
+
+    /**
+     * Return total page available
+     * @return float
+     */
+    public function getTotalPages()
+    {
+        if ($this->_usePagination === false) return;
+        if (!$this->isFetched) $this->fetchCollection();
+
+        return (int)ceil($this->_paginationFoundRows / $this->_paginationNbModelByPage);
+    }
+
+    /**
+     * Paginate collection to match a num page
+     * @param $neededNumPage
+     */
+    public function paginate($neededNumPage)
+    {
+        if ($this->_usePagination === false) return;
+        $limitStart = max(0, $neededNumPage - 1) * $this->_paginationNbModelByPage;
+
+        $this->_queryHelper->limit($limitStart, $this->_paginationNbModelByPage);
+    }
+
+
+    /**
+     * Enable pagination in collection
+     * @param $nbModelByPage
+     */
+    public function activePagination($nbModelByPage)
+    {
+        $this->_usePagination = true;
+        $this->_paginationNbModelByPage = $nbModelByPage;
+    }
+
+    /**
+     * Fetch the mysql found_rows from last select query
+     * @return mixed
+     */
+    public function foundRows()
+    {
+        if (!$this->isFetched) $this->fetchCollection();
+        return (int)$this->_dataSource->query('SELECT FOUND_ROWS() as nbrows;')->fetch(\PDO::FETCH_COLUMN);
     }
 
     /**
      * Test if collection has element at this $index
-     * @param $id
+     * @param $index
      * @return bool
      */
     public function has($index)
     {
         if (!$this->isFetched) $this->fetchCollection();
-        return isset($this->entities[$index]);
+        return isset($this->models[$index]);
     }
 
     /**
-     * Set collection element with $entity at $index
-     * @param $id
-     * @param $entity
+     * Set collection element with $model at $index
+     * @param $index
+     * @param $model
      */
-    public function set($index, $entity)
+    public function set($index, $model)
     {
-        $this->entities[$index] = $entity;
+        $this->models[$index] = $model;
     }
 
-// iterator methods
+// iterator and array interfaces methods
 
     /**
      * Rewind method allow to lazy fetch collection
@@ -173,7 +242,7 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
 
     public function current()
     {
-        return $this->entities[$this->position];
+        return $this->models[$this->position];
     }
 
     public function key()
@@ -188,37 +257,45 @@ class EntityCollection implements \Iterator, \Countable, \ArrayAccess
 
     public function valid()
     {
-        return isset($this->entities[$this->position]);
+        return isset($this->models[$this->position]);
     }
 
-    public function count() {
+    public function count()
+    {
         if (!$this->isFetched) $this->fetchCollection();
 
-        return count($this->entities);
+        return count($this->models);
     }
 
-    public function offsetSet($offset, $value) {
+    public function offsetSet($offset, $value)
+    {
         if (!$this->isFetched) $this->fetchCollection();
 
         if (is_null($offset))
-            $this->entities[] = $value;
+            $this->models[] = $value;
         else
-            $this->entities[$offset] = $value;
+            $this->models[$offset] = $value;
     }
-    public function offsetExists($offset) {
+
+    public function offsetExists($offset)
+    {
         if (!$this->isFetched) $this->fetchCollection();
 
-        return isset($this->entities[$offset]);
+        return isset($this->models[$offset]);
     }
-    public function offsetUnset($offset) {
+
+    public function offsetUnset($offset)
+    {
         if (!$this->isFetched) $this->fetchCollection();
 
-        unset($this->entities[$offset]);
+        unset($this->models[$offset]);
     }
-    public function offsetGet($offset) {
+
+    public function offsetGet($offset)
+    {
         if (!$this->isFetched) $this->fetchCollection();
 
-        return isset($this->entities[$offset]) ? $this->entities[$offset] : null;
+        return isset($this->models[$offset]) ? $this->models[$offset] : null;
     }
 }
 

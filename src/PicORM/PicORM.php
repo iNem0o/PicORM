@@ -34,6 +34,7 @@ class PicORM
     /**
      * Set PicORM global configuration
      * @param array $configuration
+     * @throws Exception
      */
     final public static function configure(array $configuration)
     {
@@ -44,7 +45,7 @@ class PicORM
             throw new Exception("PDO Datasource is required!");
 
         static::$_dataSource = $configuration['datasource'];
-        Entity::setDataSource(static::$_dataSource);
+        Model::setDataSource(static::$_dataSource);
 
         static::$_configuration = $configuration;
     }

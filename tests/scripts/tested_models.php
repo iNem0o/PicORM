@@ -1,5 +1,18 @@
 <?php
-class BrandEntity extends \PicOrm\Entity
+class TestModel extends \PicOrm\Model {
+    protected static $_databaseName = 'testbddmodel';
+    protected static $_tableName = 'testmodel';
+    protected static $_primaryKey = "idTestModel";
+    protected static $_relations = array();
+
+    protected static $_tableFields = array(
+        'testField'
+    );
+
+    public $idTestModel;
+    public $testField;
+}
+class BrandModel extends \PicOrm\Model
 {
     protected static $_tableName = 'brands';
     protected static $_primaryKey = "idBrand";
@@ -22,11 +35,11 @@ class BrandEntity extends \PicOrm\Entity
     }
 }
 
-class Brand extends BrandEntity {
+class Brand extends BrandModel {
 
 }
 
-class Tag extends \PicOrm\Entity
+class Tag extends \PicOrm\Model
 {
     protected static $_tableName = 'tags';
     protected static $_primaryKey = "idTag";
@@ -45,7 +58,7 @@ class Tag extends \PicOrm\Entity
     }
 }
 
-class Car extends \PicOrm\Entity
+class Car extends \PicOrm\Model
 {
     protected static $_tableName = 'cars';
     protected static $_primaryKey = "idCar";
@@ -66,7 +79,7 @@ class Car extends \PicOrm\Entity
         // create a relation between Car and Brand
         // based on this.idBrand = Brand.idBrand
         // nameBrand is added to autoget fields which is automatically fetched
-        // when entity is loaded
+        // when model is loaded
         self::addRelationOneToOne('idBrand', 'Brand', 'idBrand', 'nameBrand');
         self::addRelationManyToMany("idCar","Tag","idTag","car_have_tag");
     }
