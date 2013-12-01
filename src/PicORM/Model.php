@@ -87,10 +87,12 @@ abstract class Model
      */
     protected static function _validateModel()
     {
-        // assure that check is only did once
+        // check if model is already validate
         if (!isset(self::$validationStatus[static::$_databaseName . static::$_tableName])) {
 
+            // grab actual class name from late state binding
             $subClassName = get_class(new static());
+
             // check model OOP static structure is OK
             if (static::$_tableName === null) {
                 throw new Exception($subClassName . '::$_tableName must be implemented');
@@ -102,10 +104,12 @@ abstract class Model
                 throw new Exception($subClassName . '::$_tableFields must be implemented');
             }
 
+            // if user has implemented $_relations for this model, call the defineRelations() method
             if (static::$_relations !== null) {
                 static::defineRelations();
             }
 
+            // store model validation status
             self::$validationStatus[static::$_databaseName . static::$_tableName] = true;
         }
     }
@@ -152,7 +156,7 @@ abstract class Model
 
     /**
      * Return model data in JSON
-     * @return string
+     * @return json
      */
     public function __toJson()
     {
@@ -213,15 +217,21 @@ abstract class Model
      */
     public function __call($method, $args)
     {
+        // validate model PHP structure if necessary
         static::_validateModel();
 
+        // if method name begin with 'get' or 'set' or 'unset'
+        // and finished with a knew relation name
         if (preg_match('/^(get|set|unset)(.+)/', $method, $matches) && array_key_exists(strtolower($matches[2]), static::$_relations)) {
+
+            // build relation accessor method name
             $toCall = '_' . $matches[1] . 'Relation';
 
-            // calling getRelation() or setRelation() or unsetRelation()
+            // calling getRelation() or setRelation() or unsetRelation() with relation data
             return $this->$toCall(static::$_relations[strtolower($matches[2])], $args);
         } else {
-            throw new Exception("unknown function {$method}");
+            // not a valid function
+            throw new Exception("unknown method {$method}");
         }
     }
 
@@ -239,10 +249,12 @@ abstract class Model
         $isDeleted = false;
         switch ($configRelation['typeRelation']) {
             case self::MANY_TO_MANY:
+                // assure that we provide an array of relation to unset
                 if (!is_array($callArgs[0])) {
                     $callArgs[0] = array($callArgs[0]);
                 }
                 foreach ($callArgs[0] as $oneRelationModel) {
+                    // build delete query for this relationship
                     $query = new InternalQueryHelper();
                     $query->delete($configRelation['relationTable'])
                           ->where($configRelation['sourceField'], '=', '?')
@@ -274,10 +286,15 @@ abstract class Model
         switch ($configRelation['typeRelation']) {
             case self::ONE_TO_ONE:
                 if ($callArgs[0] instanceof $configRelation['classRelation']) {
+                    // if relation model is new, we need to store it before
                     if ($callArgs[0]->isNew()) {
                         $callArgs[0]->save();
                     }
+
+                    // set model field corresponding to the relation
                     $this->{$configRelation['sourceField']} = $callArgs[0]->{$configRelation['targetField']};
+
+                    // if we have autoget field, grab and store them inside model
                     foreach ($configRelation['autoGetFields'] as $oneField) {
                         $this->{$oneField} = $callArgs[0]->{$oneField};
                     }
@@ -286,7 +303,9 @@ abstract class Model
                 break;
             case self::ONE_TO_MANY:
                 if (is_array($callArgs[0])) {
+                    // foreach models in relation
                     foreach ($callArgs[0] as $oneRelationModel) {
+                        // set model field corresponding to the relation
                         $oneRelationModel->{$configRelation['targetField']} = $this->{$configRelation['sourceField']};
                         $oneRelationModel->save();
                     }
@@ -294,43 +313,55 @@ abstract class Model
                 }
                 break;
             case self::MANY_TO_MANY:
+                // assure that we have an array of model
                 if (!is_array($callArgs[0])) {
                     $callArgs[0] = array($callArgs[0]);
                 }
+
+                // prepare a query for testing if relation already exists
                 $testQueryHelper = new InternalQueryHelper();
                 $testQueryHelper->select('count(*) as nb')->from("`" . $configRelation['relationTable'] . "`")
                                 ->where("`" . $configRelation['sourceField'] . "`", '=', '?')
                                 ->where("`" . $configRelation['targetField'] . "`", '=', '?');
                 $testQuery = static::$_dataSource->prepare($testQueryHelper->buildQuery());
 
+                // prepare a query to insert relation between models
                 $insertQuery = new InternalQueryHelper();
                 $insertQuery->insertInto("`" . $configRelation['relationTable'] . "`")
                             ->values($configRelation['sourceField'], "?")
                             ->values($configRelation['targetField'], "?");
                 $insertQuery = static::$_dataSource->prepare($insertQuery->buildQuery());
 
+                // for each model in relation
                 foreach ($callArgs[0] as $oneRelationModel) {
+                    // if model is new, we need to store it before setting relation
                     if ($oneRelationModel->isNew()) {
                         $oneRelationModel->save();
-                    }
-
-                    // test if relation already exists
-                    $testQuery->execute(array($this->{$configRelation['sourceField']}, $oneRelationModel->{$configRelation['targetField']}));
-                    $errorcode = $testQuery->errorInfo();
-                    if ($errorcode[0] != "00000") {
-                        throw new Exception($errorcode[2]);
-                    }
-                    $testResult = $testQuery->fetch(\PDO::FETCH_ASSOC);
-                    if ($testResult['nb'] == 0) {
-                        // create link in relation table
-                        $insertQuery->execute(array($this->{$configRelation['sourceField']}, $oneRelationModel->{$configRelation['targetField']}));
-                        $errorcode = $insertQuery->errorInfo();
+                    } else {
+                        // test if relation already exists between the two models
+                        $testQuery->execute(array($this->{$configRelation['sourceField']}, $oneRelationModel->{$configRelation['targetField']}));
+                        $errorcode = $testQuery->errorInfo();
                         if ($errorcode[0] != "00000") {
                             throw new Exception($errorcode[2]);
                         }
+                        $testResult = $testQuery->fetch(\PDO::FETCH_ASSOC);
 
-                        $isSaved = true;
+                        // relation already set
+                        if ($testResult['nb'] > 0) {
+                            continue;
+                        }
                     }
+
+                    // create link in relation table
+                    $insertQuery->execute(array($this->{$configRelation['sourceField']}, $oneRelationModel->{$configRelation['targetField']}));
+                    $errorcode = $insertQuery->errorInfo();
+
+                    // check if data is stored with no error
+                    if ($errorcode[0] != "00000") {
+                        throw new Exception($errorcode[2]);
+                    }
+
+                    $isSaved = true;
                 }
                 break;
         }
@@ -339,7 +370,7 @@ abstract class Model
     }
 
     /**
-     * Get a relation value from magic getter
+     * Get a relation value using magic getter
      *
      * @param array $configRelation
      * @param array $callArgs
@@ -355,9 +386,13 @@ abstract class Model
         if (isset($callArgs[0]) && is_array($callArgs[0])) {
             $where = $callArgs[0];
         }
+
+        // extract order from args
         if (isset($callArgs[1]) && is_array($callArgs[1])) {
             $order = $callArgs[1];
         }
+
+        // extract limit from args
         if (isset($callArgs[2]) && is_array($callArgs[2])) {
             $limitStart = $callArgs[2];
         }
@@ -369,23 +404,33 @@ abstract class Model
         switch ($configRelation['typeRelation']) {
             case self::ONE_TO_ONE:
                 $classRelation = $configRelation['classRelation'];
-                $where         = array_merge(
+
+                // add model relation relation field to where
+                $where = array_merge(
                     $where,
                     array($configRelation['targetField'] => $this->{$configRelation['sourceField']})
                 );
+
+                // grab the related model
                 $relationValue = $classRelation::findOne($where, $order);
+
                 break;
             case self::ONE_TO_MANY:
                 $classRelation = $configRelation['classRelation'];
-                $where         = array_merge(
+
+                // add model relation relation field to where
+                $where = array_merge(
                     $where,
                     array($configRelation['targetField'] => $this->{$configRelation['sourceField']})
                 );
+
+                // grab the related models
                 $relationValue = $classRelation::find($where, $order, $limitStart, $limitEnd);
                 break;
             case self::MANY_TO_MANY:
                 $classRelation = $configRelation['classRelation'];
 
+                // create the select query for related models using relation table
                 $selectRelations = new InternalQueryHelper();
                 $selectRelations
                     ->select("t.*")
@@ -400,10 +445,14 @@ abstract class Model
                         // add auto get fields to select
                         foreach ($uneRelation['autoGetFields'] as &$oneField)
                             $oneField = 'rel' . $nbRelation . "." . $oneField;
+
+                        // add fields to select
                         $selectRelations->select($uneRelation['autoGetFields']);
 
+                        // add query join corresponding to the relation
                         $selectRelations->leftJoin($uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
                                                    'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $classRelation::formatTableNameMySQL() . '.`' . $uneRelation['sourceField'] . '`');
+                        // increment relation count used in prefix
                         $nbRelation++;
                     }
                 }
@@ -411,6 +460,8 @@ abstract class Model
                                 array("`" . $configRelation['relationTable'] . "`." . $configRelation['sourceField'] => $this->{$configRelation['sourceField']})
                 );
 
+                // create collection with this model datasource instance
+                // hydrating $classRelation model and using $selectRelation query helper
                 $relationValue = new Collection(static::getDataSource(), $selectRelations, $classRelation);
                 break;
         }
@@ -427,7 +478,7 @@ abstract class Model
      */
     protected static function formatClassnameToRelationName($fullClassName)
     {
-
+        // test if namespace present and remove them
         if (strpos($fullClassName, '\\') !== false) {
             $fullClassName = explode('\\', $fullClassName);
             $fullClassName = array_pop($fullClassName);
@@ -460,24 +511,30 @@ abstract class Model
             throw new Exception('$targetField have to be a string');
         }
 
+        // test is related class is a PicORM model
         if (!class_exists($classRelation) || !new $classRelation() instanceof Model) {
             throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of \PicORM\Model");
         }
 
-        // if === true, auto get all fields
+        // test if its needed to autoget all fields
         if ($autoGetFields === true) {
             $autoGetFields = $classRelation::getModelFields();
         }
 
+        // store autogetfields as an array
         if (!is_array($autoGetFields)) {
             $autoGetFields = array($autoGetFields);
         }
 
+        // create relation id with normalized classRelation name
         $idRelation = self :: formatClassnameToRelationName($classRelation);
+
+        // override the relation's id if an alias is present
         if (!empty($aliasRelation)) {
             $idRelation = $aliasRelation;
         }
 
+        // store new relation in model
         static::$_relations[$idRelation] = array(
             'typeRelation'  => self::ONE_TO_ONE,
             'classRelation' => $classRelation,
@@ -499,15 +556,20 @@ abstract class Model
      */
     protected static function addRelationOneToMany($sourceField, $classRelation, $targetField, $aliasRelation = '')
     {
+        // test is related class is a PicORM model
         if (!class_exists($classRelation) || !new $classRelation() instanceof Model) {
             throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of PicORM\Model");
         }
 
+        // create relation id with normalized classRelation name
         $idRelation = self :: formatClassnameToRelationName($classRelation);
+
+        // override the relation's id if an alias is present
         if (!empty($aliasRelation)) {
             $idRelation = $aliasRelation;
         }
 
+        // store new relation in model
         static::$_relations[$idRelation] = array(
             'typeRelation'  => self::ONE_TO_MANY,
             'classRelation' => $classRelation,
@@ -529,15 +591,20 @@ abstract class Model
      */
     protected static function addRelationManyToMany($sourceField, $classRelation, $targetField, $relationTable, $aliasRelation = '')
     {
+        // test is related class is a PicORM model
         if (!class_exists($classRelation) || !new $classRelation() instanceof Model) {
             throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of PicORM\Model");
         }
 
+        // create relation id with normalized classRelation name
         $idRelation = self :: formatClassnameToRelationName($classRelation);
+
+        // override the relation's id if an alias is present
         if (!empty($aliasRelation)) {
             $idRelation = $aliasRelation;
         }
 
+        // store new relation in model
         static::$_relations[$idRelation] = array(
             'typeRelation'  => self::MANY_TO_MANY,
             'classRelation' => $classRelation,
@@ -587,10 +654,13 @@ abstract class Model
      */
     public static function find($where = array(), $order = array(), $limitStart = null, $limitEnd = null)
     {
+        // validate model PHP structure if necessary
         self :: _validateModel();
 
+        // build a query helper with parameters
         $queryHelper = static::buildSelectQuery(array("*"), $where, $order, $limitStart, $limitEnd);
 
+        // create a collection instance for called model with model datasource and custom created queryhelper
         return new Collection(static::$_dataSource, $queryHelper, get_called_class());
     }
 
@@ -607,7 +677,10 @@ abstract class Model
      */
     public static function findOne($where = array(), $order = array())
     {
+        // try to fetch a model from database
         if ($dataModel = self::select(array('*'), $where, $order, 1)) {
+
+            // hydrate new model instance with fetched data
             $model = new static();
             $model->hydrate($dataModel);
 
@@ -638,6 +711,7 @@ abstract class Model
      */
     public static function count($where = array())
     {
+        // fetch the count with $where parameters
         $rawSqlFetch = self::select(array("count(*) as nb"), $where);
 
         return isset($rawSqlFetch[0]) && isset($rawSqlFetch[0]['nb']) ? $rawSqlFetch[0]['nb'] : null;
@@ -659,6 +733,7 @@ abstract class Model
      */
     protected static function buildSelectQuery($fields = array('*'), $where = array(), $order = array(), $limitStart = null, $limitEnd = null)
     {
+        // get the formatted model mysql table name with database name
         $modelTableName = static::formatTableNameMySQL();
 
         // be sure that "*" is prefixed with model table name
@@ -669,7 +744,7 @@ abstract class Model
             }
         }
 
-
+        // create and helper to build a sql query
         $helper = new InternalQueryHelper();
 
         // prefix columns with model table name
@@ -685,26 +760,30 @@ abstract class Model
         $nbRelation = 0;
         foreach (static::$_relations as $uneRelation) {
             if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && count($uneRelation['autoGetFields']) > 0) {
-                // add auto get fields to select
+                // prefix fields
                 foreach ($uneRelation['autoGetFields'] as &$oneField)
                     $oneField = 'rel' . $nbRelation . "." . $oneField;
+                // add fields to select
                 $helper->select($uneRelation['autoGetFields']);
 
+                // add query join corresponding to the relation
                 $helper->leftJoin($uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
                                   'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $modelTableName . '.`' . $uneRelation['sourceField'] . '`');
+
+                // increment relation count used in prefix
                 $nbRelation++;
             }
         }
 
-        // build where
+        // build where clause
         $helper->buildWhereFromArray($where);
 
-        // build order
+        // build order clause
         foreach ($orders as $orderField => $orderVal) {
             $helper->orderBy($orderField, $orderVal);
         }
 
-        // build limit
+        // build limit clause
         $helper->limit($limitStart, $limitEnd);
 
         return $helper;
@@ -730,7 +809,7 @@ abstract class Model
      */
     public static function select($fields = array('*'), $where = array(), $order = array(), $limitStart = null, $limitEnd = null, $pdoFetchMode = null)
     {
-        // validate model PHP structure if necessary before using it
+        // validate model PHP structure if necessary
         static::_validateModel();
 
         // build and execute query
@@ -801,7 +880,7 @@ abstract class Model
      */
     public function delete()
     {
-        // validate model PHP structure if necessary before using it
+        // validate model PHP structure if necessary
         static::_validateModel();
 
         // build delete query helper for this model
@@ -832,7 +911,7 @@ abstract class Model
      */
     private function update()
     {
-        // validate model PHP structure if necessary before using it
+        // validate model PHP structure if necessary
         static::_validateModel();
 
         // build update query on model table
@@ -846,6 +925,7 @@ abstract class Model
             if (is_array($this->$unChamp) && isset($this->{$unChamp}[0])) {
                 $helper->set($unChamp, $this->{$unChamp}[0]);
             } else {
+                // Mysql prepared value
                 $helper->set($unChamp, '?');
                 $params[] = $this->{$unChamp};
             }
@@ -873,7 +953,7 @@ abstract class Model
      */
     private function insert()
     {
-        // validate model PHP structure if necessary before using it
+        // validate model PHP structure if necessary
         static::_validateModel();
 
         // create insert query for this model
@@ -931,6 +1011,7 @@ abstract class Model
      */
     public static function begin()
     {
+        // trying to start a mysql transation
         if (!$result = static::$_dataSource->beginTransaction()) {
             throw new Exception("Transaction could not begin!");
         }
