@@ -122,7 +122,7 @@ and then, add one public property by table field with ``public $fieldName``
 
 ## find() and findOne()
 Every subclass of ``Entity`` inherit of static methods ``find()`` and ``findOne()``.<br>
-Theses methods are used to create models from database rows.
+Theses methods are used to hydrate models from database rows.
 
 ```php
 /**

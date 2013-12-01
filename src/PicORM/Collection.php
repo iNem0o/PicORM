@@ -109,7 +109,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         $fetch = $query->fetchAll(\PDO::FETCH_ASSOC);
         foreach ($fetch as &$unRes) {
             $object = new $modelName();
-            $object->hydrate($unRes, true);
+            $object->hydrate($unRes, false);
             $unRes = $object;
         }
         $this->isFetched = true;
