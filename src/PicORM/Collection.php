@@ -24,7 +24,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
      * Total models rows founded during pagination
      * @var int
      */
-    protected $_paginationFoundRows = 0;
+    protected $_paginationFoundModels = 0;
 
     /**
      * Iterator pointer position
@@ -94,9 +94,13 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function fetchCollection()
     {
         $modelName = $this->_className;
+
+        // if pagination is used, adding found rows mysql hint
         if ($this->_usePagination) {
-            $this->_queryHelper->queryModifier("SQL_CALC_FOUND_ROWS");
+            $this->_queryHelper->queryHint("SQL_CALC_FOUND_ROWS");
         }
+
+        // execute fetch query
         $query = $this->_dataSource->prepare($this->_queryHelper->buildQuery());
         $query->execute($this->_queryHelper->getWhereParamsValues());
 
@@ -106,16 +110,21 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
             throw new Exception($errorcode[2]);
         }
 
+        // fetch query and hydrate models
         $fetch = $query->fetchAll(\PDO::FETCH_ASSOC);
         foreach ($fetch as &$unRes) {
             $object = new $modelName();
             $object->hydrate($unRes, false);
             $unRes = $object;
         }
+
+        // configure collection after fetch
         $this->isFetched = true;
         $this->models    = $fetch;
+
+        // if pagination used grab the total found model
         if ($this->_usePagination) {
-            $this->_paginationFoundRows = $this->foundModels();
+            $this->_paginationFoundModels = $this->foundModels();
         }
 
         return $this;
@@ -131,11 +140,15 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
         // cloning fetch query to get where,order by and limit values
         $deleteQuery = clone($this->_queryHelper);
+
+        // transform query to delete
         $deleteQuery->cleanQueryBeforeSwitching()
                     ->delete($modelClass::formatTableNameMySQL());
 
+        // execute query
         $query = $this->_dataSource->prepare($deleteQuery->buildQuery());
         $query->execute($deleteQuery->getWhereParamsValues());
+
         // check for mysql error
         $errorcode = $query->errorInfo();
         if ($errorcode[0] != "00000") {
@@ -156,17 +169,22 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
         // cloning fetch query to get where,order by and limit values
         $updateQuery = clone($this->_queryHelper);
+
+        // transform query to update
         $updateQuery->cleanQueryBeforeSwitching()
                     ->update($modelClass::formatTableNameMySQL());
 
+        // build set values
         $params = array();
         foreach ($setValues as $fieldName => $value) {
             $updateQuery->set($fieldName, '?');
             $params[] = $value;
         }
+
         // merge set values with where values
         $params = array_merge($params, $updateQuery->getWhereParamsValues());
 
+        // execute query
         $query = $this->_dataSource->prepare($updateQuery->buildQuery());
         $query->execute($params);
 
@@ -196,7 +214,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Return total page available
-     * @return float
+     * @return int
      */
     public function getTotalPages()
     {
@@ -207,7 +225,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
             $this->fetchCollection();
         }
 
-        return (int)ceil($this->_paginationFoundRows / $this->_paginationNbModelByPage);
+        return (int)ceil($this->_paginationFoundModels / $this->_paginationNbModelByPage);
     }
 
     /**
@@ -220,16 +238,20 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         if ($this->_usePagination === false) {
             return;
         }
+
+        // build the limit start
         $limitStart = max(0, $neededNumPage - 1) * $this->_paginationNbModelByPage;
 
+        // limit fetch query for page $neededNumPage
         $this->_queryHelper->limit($limitStart, $this->_paginationNbModelByPage);
+
     }
 
 
     /**
      * Enable pagination in collection
      *
-     * @param $nbModelByPage
+     * @param $nbModelByPage - Number of model by page
      */
     public function activePagination($nbModelByPage)
     {
@@ -277,9 +299,8 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         $this->models[$index] = $model;
     }
 
-// iterator and array interfaces methods
-
     /**
+     * Rewind the Iterator to the first element
      * Rewind method allow to lazy fetch collection
      * when iteration begins
      */
@@ -291,26 +312,45 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         $this->position = 0;
     }
 
+    /**
+     * Return the current model
+     * @return Model
+     */
     public function current()
     {
         return $this->models[$this->position];
     }
 
+    /**
+     * Return the key of the current model
+     * @return int|mixed
+     */
     public function key()
     {
         return $this->position;
     }
 
+    /**
+     * Move forward to next model
+     */
     public function next()
     {
         ++$this->position;
     }
 
+    /**
+     * Checks if current position is valid
+     * @return bool - Returns true on success or false on failure
+     */
     public function valid()
     {
         return isset($this->models[$this->position]);
     }
 
+    /**
+     * Count elements of an object
+     * @return int The custom count as an integer.
+     */
     public function count()
     {
         if (!$this->isFetched) {
@@ -320,6 +360,28 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         return count($this->models);
     }
 
+    /**
+     * Whether a offset exists
+     *
+     * @param mixed $offset
+     *
+     * @return bool
+     */
+    public function offsetExists($offset)
+    {
+        if (!$this->isFetched) {
+            $this->fetchCollection();
+        }
+
+        return isset($this->models[$offset]);
+    }
+
+    /**
+     * Offset to set
+     *
+     * @param mixed $offset
+     * @param mixed $value
+     */
     public function offsetSet($offset, $value)
     {
         if (!$this->isFetched) {
@@ -333,15 +395,11 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         }
     }
 
-    public function offsetExists($offset)
-    {
-        if (!$this->isFetched) {
-            $this->fetchCollection();
-        }
-
-        return isset($this->models[$offset]);
-    }
-
+    /**
+     * Offset to unset
+     *
+     * @param mixed $offset
+     */
     public function offsetUnset($offset)
     {
         if (!$this->isFetched) {
@@ -351,6 +409,13 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         unset($this->models[$offset]);
     }
 
+    /**
+     * Offset to retrieve
+     *
+     * @param mixed $offset
+     *
+     * @return mixed|null
+     */
     public function offsetGet($offset)
     {
         if (!$this->isFetched) {

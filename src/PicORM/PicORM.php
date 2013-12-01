@@ -43,13 +43,16 @@ class PicORM
         // override with default configuration if not present
         $configuration += static::$_defaultConfiguration;
 
+        // test if datasource is a PDO instance
         if ($configuration['datasource'] === null || !$configuration['datasource'] instanceof \PDO) {
             throw new Exception("PDO Datasource is required!");
         }
 
+        // set global datasource for all model
         static::$_dataSource = $configuration['datasource'];
         Model::setDataSource(static::$_dataSource);
 
+        // store PicORM configuration
         static::$_configuration = $configuration;
     }
 }

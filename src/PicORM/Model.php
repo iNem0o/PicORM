@@ -672,9 +672,11 @@ abstract class Model
 
         $helper = new InternalQueryHelper();
 
+        // prefix columns with model table name
         $where  = $helper->prefixWhereWithTable($where, $modelTableName);
         $orders = $helper->prefixOrderWithTable($order, $modelTableName);
 
+        // starting build select
         $helper->select($fields)
                ->from($modelTableName);
 
@@ -694,11 +696,15 @@ abstract class Model
             }
         }
 
+        // build where
         $helper->buildWhereFromArray($where);
+
+        // build order
         foreach ($orders as $orderField => $orderVal) {
             $helper->orderBy($orderField, $orderVal);
         }
 
+        // build limit
         $helper->limit($limitStart, $limitEnd);
 
         return $helper;
@@ -727,6 +733,7 @@ abstract class Model
         // validate model PHP structure if necessary before using it
         static::_validateModel();
 
+        // build and execute query
         $mysqlQuery = static::buildSelectQuery($fields, $where, $order, $limitStart, $limitEnd);
         $query      = static::$_dataSource->prepare($mysqlQuery->buildQuery());
         $query->execute($mysqlQuery->getWhereParamsValues());
@@ -737,13 +744,17 @@ abstract class Model
             throw new Exception($errorcode[2]);
         }
 
+        // if no fetch mode specified fallback to FETCH_ASSOC
         if ($pdoFetchMode === null) {
             $pdoFetchMode = \PDO::FETCH_ASSOC;
         }
+
+        // if limit say its a findOne only fetch
         if ($limitStart == 1 && ($limitEnd === null || $limitEnd === 1)) {
             return $query->fetch($pdoFetchMode);
         }
 
+        // fetch and return data from database
         return $query->fetchAll($pdoFetchMode);
     }
 
@@ -759,6 +770,7 @@ abstract class Model
         // using reflection to check if property exist
         $reflection = new \ReflectionObject($this);
         foreach ($data as $k => $v) {
+            // if strictLoad is disabled, all propertie are allowed to be hydrated
             if (!$strictLoad) {
                 $this->{$k} = $v;
                 continue;
@@ -768,14 +780,17 @@ abstract class Model
                 $this->{$k} = $v;
                 continue;
             }
+            // test relation auto get fields
             foreach (static::$_relations as $uneRelation) {
-                // check if this is an auto get field from relation
+                // check if this field is in auto get from relation
                 if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && in_array($k, $uneRelation['autoGetFields'])) {
                     $this->{$k} = $v;
                     break;
                 }
             }
         }
+
+        // model is not new anymore
         $this->_isNew = false;
     }
 
@@ -789,10 +804,12 @@ abstract class Model
         // validate model PHP structure if necessary before using it
         static::_validateModel();
 
+        // build delete query helper for this model
         $query = new InternalQueryHelper();
         $query->delete(self::formatTableNameMySQL())
               ->where(static::$_primaryKey, "=", "?");
 
+        // delete model from database
         $query = static::$_dataSource->prepare($query->buildQuery());
         $query->execute(array($this->{static::$_primaryKey}));
 
@@ -802,6 +819,7 @@ abstract class Model
             throw new Exception($errorcode[2]);
         }
 
+        // model is not stored anymore in database
         $this->_isNew = true;
 
         return true;
@@ -817,11 +835,12 @@ abstract class Model
         // validate model PHP structure if necessary before using it
         static::_validateModel();
 
+        // build update query on model table
         $helper = new InternalQueryHelper();
         $helper->update(static::$_tableName);
-        $params = array();
 
-        // setting model fields
+        // setting model fields value
+        $params = array();
         foreach (static::$_tableFields as $unChamp) {
             // array is for raw SQL value
             if (is_array($this->$unChamp) && isset($this->{$unChamp}[0])) {
@@ -832,11 +851,11 @@ abstract class Model
             }
         }
 
-        // setting primary key
+        // restrict with model primary key
         $helper->where(self::formatTableNameMySQL() . ".`" . static::$_primaryKey . "`", "=", "?");
-
         $params[] = $this->{static::$_primaryKey};
 
+        // update model in database
         $query = static::$_dataSource->prepare($helper->buildQuery());
         $query->execute($params);
 
@@ -857,7 +876,7 @@ abstract class Model
         // validate model PHP structure if necessary before using it
         static::_validateModel();
 
-        $params    = array();
+        // create insert query for this model
         $queryHelp = new InternalQueryHelper();
         $queryHelp->insertInto(self::formatTableNameMySQL());
 
@@ -870,11 +889,13 @@ abstract class Model
         }
 
         // save model fields
+        $params = array();
         foreach (static::$_tableFields as $unChamp) {
             // array is for raw SQL value
             if (is_array($this->$unChamp) && isset($this->{$unChamp}[0])) {
                 $val = $this->{$unChamp}[0];
             } else {
+                // mysql prepared value
                 $val      = '?';
                 $params[] = $this->$unChamp;
             }
@@ -882,6 +903,7 @@ abstract class Model
             $queryHelp->values($unChamp, $val);
         }
 
+        // execute insert query
         $query = static::$_dataSource->prepare($queryHelp->buildQuery());
         $query->execute($params);
 
@@ -894,7 +916,7 @@ abstract class Model
         // model is saved, not new anymore
         $this->_isNew = false;
 
-        // grab the last insert ID if empty PK for auto_increment
+        // if empty PK grab the last insert ID for auto_increment fields
         if (empty($this->{static::$_primaryKey})) {
             $this->{static::$_primaryKey} = static::$_dataSource->lastInsertId();
         }
