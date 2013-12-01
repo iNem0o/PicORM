@@ -214,18 +214,33 @@ Pagination in collection is based on MySQL FOUND_ROWS().
 Remembering that collection is not fetched until you use it, when you have a Collection instance, its easy to activate pagination with
 
 ```php
-    $carCollection = Car::find();
-    $carCollection->activePagination($numByPage = 50);
-    $carCollection->paginate($actualPage = 1);
+$carCollection = Car::find();
+$carCollection->activePagination($numByPage = 50);
+$carCollection->paginate($actualPage = 1);
 ```
 
 You have now access to 2 more methods.
 
 ```php
-    $nbTotalPages = $carCollection -> getTotalPages();
-    $nbTotalModels = $carCollection -> foundModels();
+$nbTotalPages = $carCollection -> getTotalPages();
+$nbTotalModels = $carCollection -> foundModels();
 ```
 
+### Collection advanced query
+You are able to alter the fetch query before it execution using the ```getQueryHelper()``` method on the collection.
+You will get an instance of ```InternalQueryHelper``` which you can manipulate. Once you are done, just set
+the collection query helper with ```setQueryHelper($helper)```
+
+That way you can load custom data inside a model instance.
+
+```php
+$cars  = Car::find();
+$queryBuilder = $cars->getQueryHelper();
+$queryBuilder->select("COUNT(idTag) as nbTags");
+$queryBuilder->leftJoin('car_has_tag cht', 'cht.idCar = cars.idCar');
+$queryBuilder->groupBy("cars.idCar");
+$cars->setQueryHelper($queryBuilder);
+```
 
 ## Relations between models
 Using relations will need you to add a property and a method to your model subclass.<br>
