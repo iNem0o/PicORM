@@ -214,9 +214,9 @@ Pagination in collection is based on MySQL FOUND_ROWS().
 Remembering that collection is not fetched until you use it, when you have a Collection instance, its easy to activate pagination with
 
 ```php
-$carCollection = Car::find();
-$carCollection->activePagination($numByPage = 50);
-$carCollection->paginate($actualPage = 1);
+$carCollection = Car::find();           // grab all car from database
+$carCollection->activePagination(50);   // asking for 50 models by page
+$carCollection->paginate(1);            // asking for first page
 ```
 
 You have now access to 2 more methods.

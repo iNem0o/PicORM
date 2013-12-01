@@ -76,6 +76,8 @@ abstract class Model
      */
     protected static function defineRelations()
     {
+        // test if user has implemented $_relations in his model
+        // before adding relations
         if (static::$_relations === null) {
             throw new Exception(get_class(new static()) . '::$_tableName must be implemented');
         }
