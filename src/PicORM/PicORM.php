@@ -27,13 +27,15 @@ class PicORM
      * @var array
      */
     protected static $_defaultConfiguration = array(
-        'cache' => false, // !!TODO!!
+        'cache'      => false, // !!TODO!!
         'datasource' => null
     );
 
     /**
      * Set PicORM global configuration
+     *
      * @param array $configuration
+     *
      * @throws Exception
      */
     final public static function configure(array $configuration)
@@ -41,8 +43,9 @@ class PicORM
         // override with default configuration if not present
         $configuration += static::$_defaultConfiguration;
 
-        if($configuration['datasource'] === null || !$configuration['datasource'] instanceof \PDO)
+        if ($configuration['datasource'] === null || !$configuration['datasource'] instanceof \PDO) {
             throw new Exception("PDO Datasource is required!");
+        }
 
         static::$_dataSource = $configuration['datasource'];
         Model::setDataSource(static::$_dataSource);

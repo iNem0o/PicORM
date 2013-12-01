@@ -57,14 +57,32 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     private $_className;
 
     /**
-     * @param \PDO $dataSource
+     * @param \PDO                $dataSource
      * @param InternalQueryHelper $queryHelper
-     * @param $className
+     * @param                     $className
      */
     public function __construct(\PDO $dataSource, InternalQueryHelper $queryHelper, $className)
     {
-        $this->_dataSource = $dataSource;
-        $this->_className = $className;
+        $this->_dataSource  = $dataSource;
+        $this->_className   = $className;
+        $this->_queryHelper = $queryHelper;
+    }
+
+    /**
+     * Return collection query helper
+     * @return InternalQueryHelper
+     */
+    public function getQueryHelper()
+    {
+        return clone($this->_queryHelper);
+    }
+
+    /**
+     * Define collection query helper
+     * @return InternalQueryHelper
+     */
+    public function setQueryHelper(QueryBuilder $queryHelper)
+    {
         $this->_queryHelper = $queryHelper;
     }
 
@@ -84,19 +102,22 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
         // check for mysql error
         $errorcode = $query->errorInfo();
-        if ($errorcode[0] != "00000") throw new Exception($errorcode[2]);
+        if ($errorcode[0] != "00000") {
+            throw new Exception($errorcode[2]);
+        }
 
         $fetch = $query->fetchAll(\PDO::FETCH_ASSOC);
         foreach ($fetch as &$unRes) {
             $object = new $modelName();
-            $object->hydrate($unRes);
+            $object->hydrate($unRes, true);
             $unRes = $object;
         }
         $this->isFetched = true;
-        $this->models = $fetch;
+        $this->models    = $fetch;
         if ($this->_usePagination) {
-            $this->_paginationFoundRows = $this->foundRows();
+            $this->_paginationFoundRows = $this->foundModels();
         }
+
         return $this;
     }
 
@@ -111,18 +132,22 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         // cloning fetch query to get where,order by and limit values
         $deleteQuery = clone($this->_queryHelper);
         $deleteQuery->cleanQueryBeforeSwitching()
-            ->delete($modelClass::formatTableNameMySQL());
+                    ->delete($modelClass::formatTableNameMySQL());
 
         $query = $this->_dataSource->prepare($deleteQuery->buildQuery());
         $query->execute($deleteQuery->getWhereParamsValues());
         // check for mysql error
         $errorcode = $query->errorInfo();
-        if ($errorcode[0] != "00000") throw new Exception($errorcode[2]);
+        if ($errorcode[0] != "00000") {
+            throw new Exception($errorcode[2]);
+        }
     }
 
     /**
      * Update models in collection with specified values
+     *
      * @param array $setValues
+     *
      * @throws Exception
      */
     public function update(array $setValues)
@@ -132,7 +157,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         // cloning fetch query to get where,order by and limit values
         $updateQuery = clone($this->_queryHelper);
         $updateQuery->cleanQueryBeforeSwitching()
-            ->update($modelClass::formatTableNameMySQL());
+                    ->update($modelClass::formatTableNameMySQL());
 
         $params = array();
         foreach ($setValues as $fieldName => $value) {
@@ -147,17 +172,24 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
         // check for mysql error
         $errorcode = $query->errorInfo();
-        if ($errorcode[0] != "00000") throw new Exception($errorcode[2]);
+        if ($errorcode[0] != "00000") {
+            throw new Exception($errorcode[2]);
+        }
     }
 
     /**
      * Return an element from collection by index
+     *
      * @param $index
+     *
      * @return Model
      */
     public function get($index)
     {
-        if (!$this->isFetched) $this->fetchCollection();
+        if (!$this->isFetched) {
+            $this->fetchCollection();
+        }
+
         return $this->models[$index];
 
     }
@@ -168,19 +200,26 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
      */
     public function getTotalPages()
     {
-        if ($this->_usePagination === false) return 0;
-        if (!$this->isFetched) $this->fetchCollection();
+        if ($this->_usePagination === false) {
+            return 0;
+        }
+        if (!$this->isFetched) {
+            $this->fetchCollection();
+        }
 
         return (int)ceil($this->_paginationFoundRows / $this->_paginationNbModelByPage);
     }
 
     /**
      * Paginate collection to match a num page
+     *
      * @param $neededNumPage
      */
     public function paginate($neededNumPage)
     {
-        if ($this->_usePagination === false) return;
+        if ($this->_usePagination === false) {
+            return;
+        }
         $limitStart = max(0, $neededNumPage - 1) * $this->_paginationNbModelByPage;
 
         $this->_queryHelper->limit($limitStart, $this->_paginationNbModelByPage);
@@ -189,11 +228,12 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Enable pagination in collection
+     *
      * @param $nbModelByPage
      */
     public function activePagination($nbModelByPage)
     {
-        $this->_usePagination = true;
+        $this->_usePagination           = true;
         $this->_paginationNbModelByPage = $nbModelByPage;
     }
 
@@ -201,25 +241,34 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
      * Fetch the mysql found_rows from last select query
      * @return mixed
      */
-    public function foundRows()
+    public function foundModels()
     {
-        if (!$this->isFetched) $this->fetchCollection();
+        if (!$this->isFetched) {
+            $this->fetchCollection();
+        }
+
         return (int)$this->_dataSource->query('SELECT FOUND_ROWS();')->fetch(\PDO::FETCH_COLUMN);
     }
 
     /**
      * Test if collection has element at this $index
+     *
      * @param $index
+     *
      * @return bool
      */
     public function has($index)
     {
-        if (!$this->isFetched) $this->fetchCollection();
+        if (!$this->isFetched) {
+            $this->fetchCollection();
+        }
+
         return isset($this->models[$index]);
     }
 
     /**
      * Set collection element with $model at $index
+     *
      * @param $index
      * @param $model
      */
@@ -236,7 +285,9 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
      */
     public function rewind()
     {
-        if (!$this->isFetched) $this->fetchCollection();
+        if (!$this->isFetched) {
+            $this->fetchCollection();
+        }
         $this->position = 0;
     }
 
@@ -262,38 +313,49 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     public function count()
     {
-        if (!$this->isFetched) $this->fetchCollection();
+        if (!$this->isFetched) {
+            $this->fetchCollection();
+        }
 
         return count($this->models);
     }
 
     public function offsetSet($offset, $value)
     {
-        if (!$this->isFetched) $this->fetchCollection();
+        if (!$this->isFetched) {
+            $this->fetchCollection();
+        }
 
-        if (is_null($offset))
+        if (is_null($offset)) {
             $this->models[] = $value;
-        else
+        } else {
             $this->models[$offset] = $value;
+        }
     }
 
     public function offsetExists($offset)
     {
-        if (!$this->isFetched) $this->fetchCollection();
+        if (!$this->isFetched) {
+            $this->fetchCollection();
+        }
 
         return isset($this->models[$offset]);
     }
 
     public function offsetUnset($offset)
     {
-        if (!$this->isFetched) $this->fetchCollection();
+        if (!$this->isFetched) {
+            $this->fetchCollection();
+        }
 
         unset($this->models[$offset]);
     }
 
     public function offsetGet($offset)
     {
-        if (!$this->isFetched) $this->fetchCollection();
+        if (!$this->isFetched) {
+            $this->fetchCollection();
+        }
 
         return isset($this->models[$offset]) ? $this->models[$offset] : null;
     }

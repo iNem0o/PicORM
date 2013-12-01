@@ -4,6 +4,11 @@ PicORM is an Active Record pattern implementation easy to install and use.
 
 *Currently in beta version 0.0.4*
 
+### Some stuff you need to know
+- You can't have multiple primary key
+- You can't use Many To Many relations with data in relation table
+- Fork and pull request are encouraged!
+
 ### Install
 **From composer**<br>
 
@@ -173,6 +178,7 @@ This parameter is data for building an ORDER mysql clause
 Collections in PicORM are created by ``::find()`` method, accessible statically on each ``\PicORM\Model`` subclass.<br>
 Once you have a fresh \PicORM\Collection instance, data is not fetched yet. Fetching is done only when you try to access data using one of these ways
 
+### Collections usage
 ```php
 // php array access
 	$firstResult = $collection[0];
@@ -203,6 +209,23 @@ this way using ``update()`` or ``delete()`` method produce only one MySQL query 
                          -> update(array('noteBrand' => 5));
 						 
 ```
+### Collections pagination
+Pagination in collection is based on MySQL FOUND_ROWS().
+Remembering that collection is not fetched until you use it, when you have a Collection instance, its easy to activate pagination with
+
+```php
+    $carCollection = Car::find();
+    $carCollection->activePagination($numByPage = 50);
+    $carCollection->paginate($actualPage = 1);
+```
+
+You have now access to 2 more methods.
+
+```php
+    $nbTotalPages = $carCollection -> getTotalPages();
+    $nbTotalModels = $carCollection -> foundModels();
+```
+
 
 ## Relations between models
 Using relations will need you to add a property and a method to your model subclass.<br>
@@ -447,3 +470,5 @@ Changelog
 - Collection pagination
 - Tests
 
+#### BETA 0.0.5
+- Customize collection query builder

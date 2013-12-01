@@ -21,18 +21,22 @@ class InternalQueryHelper extends QueryBuilder
      *
      * @param $data
      * @param $tableName
+     *
      * @return mixed
      */
     public function prefixWhereWithTable($data, $tableName)
     {
-        if (count($data) == 0) return $data;
+        if (count($data) == 0) {
+            return $data;
+        }
 
         $tableName = trim($tableName, '`');
         foreach ($data as $key => $v) {
-            $newKey = $tableName . '.' . trim($key, '`');
+            $newKey        = $tableName . '.' . trim($key, '`');
             $data[$newKey] = $v;
             unset($data[$key]);
         }
+
         return $data;
     }
 
@@ -42,35 +46,43 @@ class InternalQueryHelper extends QueryBuilder
      *
      * @param $data
      * @param $tableName
+     *
      * @return mixed
      */
     public function prefixOrderWithTable($data, $tableName)
     {
-        if (count($data) == 0) return $data;
+        if (count($data) == 0) {
+            return $data;
+        }
 
         $tableName = trim($tableName, '`');
         foreach ($data as $key => $v) {
             // if $v is empty, we have a custom order like RAND() and do not have to prefix
             if (!empty($v)) {
-                $newKey = $tableName . '.' . trim($key, '`');
+                $newKey        = $tableName . '.' . trim($key, '`');
                 $data[$newKey] = $v;
                 unset($data[$key]);
             }
         }
+
         return $data;
     }
 
     /**
      * Build where condition from find() $where params
+     *
      * @param $where
+     *
      * @return $this
      */
     public function buildWhereFromArray($where)
     {
-        if (count($where) == 0) return $this;
+        if (count($where) == 0) {
+            return $this;
+        }
 
         foreach ($where as $fieldName => $oneCritera) {
-            $val = '?';
+            $val      = '?';
             $operator = "=";
             if (is_array($oneCritera)) {
                 // using raw mysql
@@ -95,6 +107,7 @@ class InternalQueryHelper extends QueryBuilder
             }
             $this->where($fieldName, $operator, $val);
         }
+
         return $this->_whereValues;
     }
 
@@ -115,6 +128,7 @@ class InternalQueryHelper extends QueryBuilder
     {
         // clean join created by collection for fetching auto get field
         $this->_join = array();
+
         return $this;
     }
 }
