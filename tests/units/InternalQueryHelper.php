@@ -1,17 +1,22 @@
 <?php
 namespace PicORM\tests\units;
+
 use \atoum;
 
-class InternalQueryHelper extends atoum {
-    public static function createInternalQueryHelper() {
+class InternalQueryHelper extends atoum
+{
+    public static function createInternalQueryHelper()
+    {
         return array(
             array(new \PicORM\InternalQueryHelper())
         );
     }
+
     /**
      * @dataProvider createInternalQueryHelper
      */
-    public function testprefixWhereWithTable($internalQueryBuilder) {
+    public function testprefixWhereWithTable($internalQueryBuilder)
+    {
         $where = array(
             'field1' => 'data',
             'field2' => 'data',
@@ -19,15 +24,17 @@ class InternalQueryHelper extends atoum {
         );
 
         $this
-              ->if($newWhere = $internalQueryBuilder -> prefixWhereWithTable($where,'tablename'))
-              ->boolean(isset($newWhere['tablename.field1']))->isEqualTo(true)
-              ->boolean(isset($newWhere['tablename.field2']))->isEqualTo(true)
-              ->boolean(isset($newWhere['tablename.field3']))->isEqualTo(true);
+            ->if($newWhere = $internalQueryBuilder->prefixWhereWithTable($where, 'tablename'))
+            ->boolean(isset($newWhere['tablename.field1']))->isEqualTo(true)
+            ->boolean(isset($newWhere['tablename.field2']))->isEqualTo(true)
+            ->boolean(isset($newWhere['tablename.field3']))->isEqualTo(true);
     }
+
     /**
      * @dataProvider createInternalQueryHelper
      */
-    public function testprefixOrderWithTable($internalQueryBuilder) {
+    public function testprefixOrderWithTable($internalQueryBuilder)
+    {
         $order = array(
             'field1' => 'ASC',
             'field2' => 'DESC',
@@ -35,7 +42,7 @@ class InternalQueryHelper extends atoum {
         );
 
         $this
-            ->if($newOrder = $internalQueryBuilder -> prefixOrderWithTable($order,'tablename'))
+            ->if($newOrder = $internalQueryBuilder->prefixOrderWithTable($order, 'tablename'))
             ->boolean(isset($newOrder['tablename.field1']))->isEqualTo(true)
             ->boolean(isset($newOrder['tablename.field2']))->isEqualTo(true)
             ->boolean(isset($newOrder['RAND()']))->isEqualTo(true);
@@ -44,25 +51,26 @@ class InternalQueryHelper extends atoum {
     /**
      * @dataProvider createInternalQueryHelper
      */
-    public function testBuildWhereFromArray($selectInternalQueryBuilder) {
+    public function testBuildWhereFromArray($selectInternalQueryBuilder)
+    {
         $selectInternalQueryBuilder
-            -> select('*')
-            -> from('tableName')
-            -> buildWhereFromArray(array(
-                                    'id' => 1,
-                                    'text' => 'hello world',
-                                    'datetime' => array('NOW()'),
-                                    'libelle' => array(
-                                                'operator' => 'LIKE',
-                                                'value' => array("CONCAT('%',?,'%')")
-                                                )
-                                    )
-               );
-        $resParams = $selectInternalQueryBuilder -> getWhereParamsValues();
+            ->select('*')
+            ->from('tableName')
+            ->buildWhereFromArray(array(
+                                      'id'       => 1,
+                                      'text'     => 'hello world',
+                                      'datetime' => array('NOW()'),
+                                      'libelle'  => array(
+                                          'operator' => 'LIKE',
+                                          'value'    => array("CONCAT('%',?,'%')")
+                                      )
+                                  )
+            );
+        $resParams = $selectInternalQueryBuilder->getWhereParamsValues();
 
         $resultQuery = "SELECT  * FROM tableName   WHERE id = ? AND text = ? AND datetime = NOW() AND libelle LIKE CONCAT('%',?,'%')";
-        $this -> string($selectInternalQueryBuilder->buildQuery())->isEqualTo($resultQuery)
-              -> integer($resParams[0])->isEqualTo(1)
-              -> string($resParams[1])->isEqualTo('hello world');
+        $this->string($selectInternalQueryBuilder->buildQuery())->isEqualTo($resultQuery)
+             ->integer($resParams[0])->isEqualTo(1)
+             ->string($resParams[1])->isEqualTo('hello world');
     }
 }

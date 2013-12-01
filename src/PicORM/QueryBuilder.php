@@ -69,13 +69,13 @@ class QueryBuilder
      */
     public function buildQuery()
     {
-        $where    = implode(' ', $this->_where);
-        $join     = implode(' ', $this->_join);
-        $orderBy  = count($this->_orderBy) > 0 ? sprintf('ORDER BY %s', implode(',', $this->_orderBy)) : '';
-        $groupBy  = count($this->_groupBy) > 0 ? sprintf('GROUP BY %s', implode(',', $this->_groupBy)) : '';
-        $hint  = count($this->_queryHint) > 0 ? sprintf(' %s ', implode(',', $this->_queryHint)) : '';
-        $limit    = $this->_limit;
-        $query    = '';
+        $where   = implode(' ', $this->_where);
+        $join    = implode(' ', $this->_join);
+        $orderBy = count($this->_orderBy) > 0 ? sprintf('ORDER BY %s', implode(',', $this->_orderBy)) : '';
+        $groupBy = count($this->_groupBy) > 0 ? sprintf('GROUP BY %s', implode(',', $this->_groupBy)) : '';
+        $hint    = count($this->_queryHint) > 0 ? sprintf(' %s ', implode(',', $this->_queryHint)) : '';
+        $limit   = $this->_limit;
+        $query   = '';
 
         switch ($this->_queryType) {
             case self::SELECT:
