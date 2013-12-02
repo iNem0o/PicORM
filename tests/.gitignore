@@ -1,4 +1,3 @@
-atoum.xml
-coverage.xml
 mageekguy.atoum.phar
 config.inc.php
+code-coverage/*
