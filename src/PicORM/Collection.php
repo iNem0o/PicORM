@@ -108,7 +108,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
      *
      * @param \PDO                $dataSource  - Pdo instance
      * @param InternalQueryHelper $queryHelper - QueryBuilder to fetch collection
-     * @param                     $className   - class name of the model
+     * @param string              $className   - class name of the model
      */
     public function __construct(\PDO $dataSource, InternalQueryHelper $queryHelper, $className)
     {
@@ -167,6 +167,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         // fetch query and hydrate models
         $fetch = $query->fetchAll(\PDO::FETCH_ASSOC);
         foreach ($fetch as &$unRes) {
+            /** @var $object \PicORM\Model */
             $object = new $modelName();
             $object->hydrate($unRes, false);
             $unRes = $object;
@@ -217,9 +218,11 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     /**
      * Update models in collection with specified values
      *
-     * @param array $setValues
+     * @param array $setValues - Associative array with model field name as key, and model field value as value
      *
      * @throws Exception
+     *
+     * @return void
      */
     public function update(array $setValues)
     {
@@ -256,7 +259,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     /**
      * Return an element from collection by index
      *
-     * @param $index
+     * @param int $index - needed array index
      *
      * @return Model
      */
@@ -290,7 +293,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     /**
      * Paginate collection to match a num page
      *
-     * @param $neededNumPage
+     * @param int $neededNumPage - Needed page number
      *
      * @return Collection
      */
@@ -313,7 +316,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     /**
      * Enable pagination in collection
      *
-     * @param $nbModelByPage - Number of model by page
+     * @param int $nbModelByPage - Number of model by page
      *
      * @return Collection
      */
@@ -342,7 +345,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     /**
      * Test if collection has element at this $index
      *
-     * @param $index
+     * @param int $index - needed index
      *
      * @return bool
      */
@@ -358,8 +361,10 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     /**
      * Set collection element with $model at $index
      *
-     * @param $index
-     * @param $model
+     * @param int   $index - needed index
+     * @param mixed $model - model to store
+     *
+     * @return void
      */
     public function set($index, $model)
     {
@@ -370,6 +375,8 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
      * Rewind the Iterator to the first element
      * Rewind method allow to lazy fetch collection
      * when iteration begins
+     *
+     * @return void
      */
     public function rewind()
     {
@@ -401,6 +408,8 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Move forward to next model
+     *
+     * @return void
      */
     public function next()
     {
@@ -434,7 +443,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     /**
      * Whether a offset exists
      *
-     * @param mixed $offset
+     * @param mixed $offset - Offset name to test
      *
      * @return bool
      */
@@ -450,8 +459,10 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     /**
      * Offset to set
      *
-     * @param mixed $offset
-     * @param mixed $value
+     * @param mixed $offset - Offset name to set
+     * @param mixed $value  - Value to set
+     *
+     * @return void
      */
     public function offsetSet($offset, $value)
     {
@@ -469,7 +480,9 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     /**
      * Offset to unset
      *
-     * @param mixed $offset
+     * @param mixed $offset - Offset name to unset
+     *
+     * @return void
      */
     public function offsetUnset($offset)
     {
@@ -483,7 +496,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     /**
      * Offset to retrieve
      *
-     * @param mixed $offset
+     * @param mixed $offset - Offset name to get
      *
      * @return mixed|null
      */
