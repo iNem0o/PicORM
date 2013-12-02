@@ -5,9 +5,9 @@ php:
     - 5.4
     - 5.5
 
-before_script:
-  - "mysql -e 'CREATE DATABASE testspicorm;'"
+install:
   - "cp tests/config.inc.sample.php tests/config.inc.php"
+  - "mysql -e 'CREATE DATABASE testspicorm;'"
 
 script:
     - php tests/launcher.php
