@@ -1023,7 +1023,6 @@ abstract class Model
 
     /**
      * Rolls back a transaction
-     *
      * @return boolean
      */
     public static function rollback()
@@ -1033,7 +1032,6 @@ abstract class Model
 
     /**
      * Commits a transaction
-     *
      * @return boolean
      */
     public static function commit()

@@ -57,7 +57,8 @@ class Model extends atoum
         $car->setBrand($testBrand);
         $car->save();
 
-        $req = \PicORM\Model::getDataSource()->prepare('SELECT count(*) as nb FROM cars WHERE idBrand = ? AND idCar = ?');
+        $req = \PicORM\Model::getDataSource()
+                            ->prepare('SELECT count(*) as nb FROM cars WHERE idBrand = ? AND idCar = ?');
         $req->execute(array($testBrand->idBrand, $car->idCar));
         $resultBDD = $req->fetch(\PDO::FETCH_ASSOC);
 
@@ -284,16 +285,17 @@ class Model extends atoum
     public function test__toJson(\Brand $testBrand, $bddResult)
     {
         $this->string($testBrand->__toJson())
-             ->isEqualTo('{"idBrand":"'.$bddResult['idBrand'].'","nameBrand":"'.$bddResult['nameBrand'].'","noteBrand":'.$bddResult['noteBrand'].'}');
+             ->isEqualTo('{"idBrand":"' . $bddResult['idBrand'] . '","nameBrand":"' . $bddResult['nameBrand'] . '","noteBrand":' . $bddResult['noteBrand'] . '}');
     }
 
     /**
      * @dataProvider createAndSaveRawModel
      */
-    public function testGetModelFields(\Brand $testBrand, $bddResult) {
+    public function testGetModelFields(\Brand $testBrand, $bddResult)
+    {
         $fields = $testBrand->getModelFields();
 
-        foreach($fields as $oneField) {
+        foreach ($fields as $oneField) {
             $this->boolean(isset($bddResult[$oneField]))->isEqualTo(true);
         }
     }
@@ -301,8 +303,9 @@ class Model extends atoum
     /**
      * @dataProvider createAndSaveRawModel
      */
-    public function testGetPrimaryKeyFieldName(\Brand $testBrand, $bddResult) {
-        $class = get_class($testBrand);
+    public function testGetPrimaryKeyFieldName(\Brand $testBrand, $bddResult)
+    {
+        $class  = get_class($testBrand);
         $pkName = $class::getPrimaryKeyFieldName();
         $this->string($pkName)->isEqualTo("idBrand");
     }
