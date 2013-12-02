@@ -77,7 +77,7 @@ abstract class Model
      *
      * @var array
      */
-    private static $validationStatus = array();
+    private static $_validationStatus = array();
 
     /**
      * Datasource instance
@@ -114,6 +114,8 @@ abstract class Model
      * ::addRelationOneToMany()
      *
      * @throws Exception
+     *
+     * @return void
      */
     protected static function defineRelations()
     {
@@ -133,7 +135,7 @@ abstract class Model
     protected static function _validateModel()
     {
         // check if model is already validate
-        if (!isset(self::$validationStatus[static::$_databaseName . static::$_tableName])) {
+        if (!isset(self::$_validationStatus[static::$_databaseName . static::$_tableName])) {
 
             // grab actual class name from late state binding
             $subClassName = get_class(new static());
@@ -155,7 +157,7 @@ abstract class Model
             }
 
             // store model validation status
-            self::$validationStatus[static::$_databaseName . static::$_tableName] = true;
+            self::$_validationStatus[static::$_databaseName . static::$_tableName] = true;
         }
     }
 
@@ -192,6 +194,8 @@ abstract class Model
 
     /**
      * Save model in database
+     *
+     * @return bool
      */
     public function save()
     {
@@ -215,7 +219,7 @@ abstract class Model
     /**
      * Return model data in an array
      *
-     * @param bool $includePrimary
+     * @param bool $includePrimary - Include or not primary key in returned array
      *
      * @return array
      */
@@ -237,16 +241,16 @@ abstract class Model
     /**
      * Return table field from Model
      *
-     * @param bool $includePrimary
+     * @param bool $includePrimary - Include or not primary key in returned array
      *
      * @return array
      */
     public static function getModelFields($includePrimary = true)
     {
+        $fields = array();
+
         if ($includePrimary) {
-            $fields = array(static::$_primaryKey);
-        } else {
-            $fields = array();
+            $fields[] = static::$_primaryKey;
         }
         foreach (static::$_tableFields as $unChamp) {
             $fields[] = $unChamp;
@@ -258,11 +262,12 @@ abstract class Model
     /**
      * Magic call which create accessors for relation
      *
-     * @param $method - method name
-     * @param $args   - method arguments
+     * @param string $method - method name
+     * @param array  $args   - method arguments
+     *
+     * @throws Exception
      *
      * @return mixed
-     * @throws Exception
      */
     public function __call($method, $args)
     {
@@ -323,11 +328,12 @@ abstract class Model
     /**
      * Set a relation value from magic setter
      *
-     * @param array $configRelation
-     * @param       $callArgs
+     * @param array $configRelation - Relation configuration
+     * @param array $callArgs       - Models instance
+     *
+     * @throws Exception
      *
      * @return bool
-     * @throws Exception
      */
     private function _setRelation(array $configRelation, $callArgs)
     {
@@ -421,10 +427,11 @@ abstract class Model
     /**
      * Get a relation value using magic getter
      *
-     * @param array $configRelation
-     * @param array $callArgs
+     * @param array $configRelation - Relation configuration
+     * @param array $callArgs       - Models instance
      *
      * @throw Exception
+     *
      * @return null
      */
     private function _getRelation(array $configRelation, $callArgs)
@@ -511,9 +518,10 @@ abstract class Model
                             $nbRelation++;
                         }
                     }
-                    $selectRelations->buildWhereFromArray(
-                                    array("`" . $configRelation['relationTable'] . "`." . $configRelation['sourceField'] => $this->{$configRelation['sourceField']})
-                    );
+
+                    $relatedFieldName = "`" . $configRelation['relationTable'] . "`." . $configRelation['sourceField'];
+                    $conditionValue = $this->{$configRelation['sourceField']};
+                    $selectRelations->buildWhereFromArray(array($relatedFieldName => $conditionValue));
 
                     // create collection with this model datasource instance
                     // hydrating $classRelation model and using $selectRelation query helper
@@ -530,7 +538,7 @@ abstract class Model
     /**
      * Format class name without namespace to store a relation name
      *
-     * @param $fullClassName
+     * @param string $fullClassName - Class name to normalize (with namespace)
      *
      * @return string
      */
@@ -548,14 +556,15 @@ abstract class Model
     /**
      * Add a OneToOne relation
      *
-     * @param        $sourceField         - model source field
-     * @param        $classRelation       - relation model classname
-     * @param        $targetField         - related model target field
-     * @param array  $autoGetFields       - field to auto get from relation when loading model
-     * @param string $aliasRelation       - override relation auto naming className with an alias
-     *                                    (ex : for reflexive relation)
+     * @param string $sourceField   - model source field
+     * @param string $classRelation - relation model classname
+     * @param string $targetField   - related model target field
+     * @param array  $autoGetFields - field to auto get from relation when loading model
+     * @param string $aliasRelation - override relation auto naming with an alias (ex : for reflexive relation)
      *
      * @throws Exception
+     *
+     * @return void
      */
     protected static function addRelationOneToOne($sourceField, $classRelation, $targetField, $autoGetFields = array(), $aliasRelation = '')
     {
@@ -908,7 +917,7 @@ abstract class Model
         // using reflection to check if property exist
         $reflection = new \ReflectionObject($this);
         foreach ($data as $k => $v) {
-            // if strictLoad is disabled, all propertie are allowed to be hydrated
+            // if strictLoad is disabled, all properties are allowed to be hydrated
             if (!$strictLoad) {
                 $this->{$k} = $v;
                 continue;
