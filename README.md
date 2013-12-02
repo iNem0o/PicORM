@@ -4,7 +4,7 @@ PicORM is an Active Record pattern implementation easy to install and use.
 
 [![Latest Stable Version](https://poser.pugx.org/picorm/picorm/version.png)](https://packagist.org/packages/picorm/picorm)
 [![Total Downloads](https://poser.pugx.org/picorm/picorm/downloads.png)](https://packagist.org/packages/picorm/picorm)
-
+[![Build Status](https://travis-ci.org/iNem0o/PicORM.png?branch=develop)](https://travis-ci.org/iNem0o/PicORM)
 
 ### Some stuff you need to know
 - You can't have multiple primary key
