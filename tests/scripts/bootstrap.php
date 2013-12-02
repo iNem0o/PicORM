@@ -14,7 +14,7 @@ try {
     exit($e->getMessage());
 }
 
-$pdo->query(file_get_contents('scripts/tested_schema.sql'));
+$pdo->query(file_get_contents(__DIR__ . '/tested_schema.sql'));
 
 \PicORM\PicORM::configure(array(
     'datasource' => $pdo

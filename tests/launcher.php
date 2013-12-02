@@ -1,7 +1,12 @@
 <?php
-    if(!file_exists("mageekguy.atoum.phar"))
-        file_put_contents('mageekguy.atoum.phar',
-                          file_get_contents("http://downloads.atoum.org/nightly/mageekguy.atoum.phar")
+    $atoumPath = __DIR__.'/mageekguy.atoum.phar';
+    $bootstrapPath = __DIR__.'/scripts/bootstrap.php';
+    $unitsFolderPath = __DIR__.'/units';
+
+    if(!file_exists($atoumPath))
+        file_put_contents($atoumPath,
+            file_get_contents("http://downloads.atoum.org/nightly/mageekguy.atoum.phar")
         );
 
-    print `php mageekguy.atoum.phar -bf scripts/bootstrap.php -d units`;
+
+    print `php $atoumPath -bf $bootstrapPath -d $unitsFolderPath`;
