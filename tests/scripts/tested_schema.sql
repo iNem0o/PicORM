@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `tags` (
   PRIMARY KEY (`idTag`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-TRUNCATE brands;;
+TRUNCATE brands;
 TRUNCATE cars;
 TRUNCATE car_have_tag;
 TRUNCATE tags;

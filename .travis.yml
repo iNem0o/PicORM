@@ -5,5 +5,12 @@ php:
     - 5.4
     - 5.5
 
+before_script:
+  - "mysql -e 'CREATE DATABASE testspicorm;'"
+  - "cp tests/config.inc.sample.php tests/config.inc.php"
+
 script:
     - php tests/launcher.php
+
+env:
+  - DB=mysql
