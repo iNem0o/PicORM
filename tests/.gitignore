@@ -1,3 +1,4 @@
 mageekguy.atoum.phar
 config.inc.php
-code-coverage/*
+reports/*
+!reports/*.gitignore

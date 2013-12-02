@@ -1,5 +1,7 @@
 <?php
-
+if(!is_dir(__DIR__.'/reports/code-coverage')) {
+    mkdir(__DIR__.'/reports/code-coverage');
+}
 /*
  * CLI report.
  */
@@ -10,20 +12,20 @@ $cli->addWriter($stdOutWriter);
 /*
  * Xunit report
  */
-$xunitWriter = new \mageekguy\atoum\writers\file(__DIR__.'/code-coverage/atoum.xml');
+$xunitWriter = new \mageekguy\atoum\writers\file(__DIR__.'/reports/atoum.xml');
 $xunit = new \mageekguy\atoum\reports\asynchronous\xunit();
 $xunit->addWriter($xunitWriter);
 
 /*
  * Clover xml coverage
  */
-$cloverWriter = new \mageekguy\atoum\writers\file(__DIR__.'/code-coverage/coverage.xml');
+$cloverWriter = new \mageekguy\atoum\writers\file(__DIR__.'/reports/coverage.xml');
 $clover = new \mageekguy\atoum\reports\asynchronous\clover();
 $clover->addWriter($cloverWriter);
 
 $coverageField = new \mageekguy\atoum\report\fields\runner\coverage\html(
     'PicORM',
-    __DIR__.'/code-coverage'
+    __DIR__.'/reports/code-coverage'
 );
 $script
     ->addDefaultReport()
