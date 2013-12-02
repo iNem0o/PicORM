@@ -281,10 +281,30 @@ class Model extends atoum
     /**
      * @dataProvider createAndSaveRawModel
      */
-    public function test__toJson($testBrand, $bddResult)
+    public function test__toJson(\Brand $testBrand, $bddResult)
     {
         $this->string($testBrand->__toJson())
-             ->isEqualTo('{"idBrand":"1","nameBrand":"Acme","noteBrand":10}');
+             ->isEqualTo('{"idBrand":"'.$bddResult['idBrand'].'","nameBrand":"'.$bddResult['nameBrand'].'","noteBrand":'.$bddResult['noteBrand'].'}');
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModel
+     */
+    public function testGetModelFields(\Brand $testBrand, $bddResult) {
+        $fields = $testBrand->getModelFields();
+
+        foreach($fields as $oneField) {
+            $this->boolean(isset($bddResult[$oneField]))->isEqualTo(true);
+        }
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModel
+     */
+    public function testGetPrimaryKeyFieldName(\Brand $testBrand, $bddResult) {
+        $class = get_class($testBrand);
+        $pkName = $class::getPrimaryKeyFieldName();
+        $this->string($pkName)->isEqualTo("idBrand");
     }
 
 
