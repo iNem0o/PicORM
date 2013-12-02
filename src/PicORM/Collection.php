@@ -103,6 +103,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
      */
     protected $_queryHelper;
 
+
     /**
      * Constructor
      *
@@ -117,6 +118,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         $this->_queryHelper = $queryHelper;
     }
 
+
     /**
      * Return collection query helper
      *
@@ -126,6 +128,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     {
         return clone($this->_queryHelper);
     }
+
 
     /**
      * Define collection query helper
@@ -138,6 +141,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     {
         $this->_queryHelper = $queryHelper;
     }
+
 
     /**
      * Execute query and fetch models from database
@@ -185,6 +189,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         return $this;
     }
 
+
     /**
      * Delete model in collection
      *
@@ -214,6 +219,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
         return true;
     }
+
 
     /**
      * Update models in collection with specified values
@@ -256,6 +262,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         }
     }
 
+
     /**
      * Return an element from collection by index
      *
@@ -273,6 +280,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     }
 
+
     /**
      * Return total page available
      *
@@ -289,6 +297,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
         return (int)ceil($this->_paginationFoundModels / $this->_paginationNbModelByPage);
     }
+
 
     /**
      * Paginate collection to match a num page
@@ -328,6 +337,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         return $this;
     }
 
+
     /**
      * Fetch the mysql found_rows from last select query
      *
@@ -341,6 +351,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
         return (int)$this->_dataSource->query('SELECT FOUND_ROWS();')->fetch(\PDO::FETCH_COLUMN);
     }
+
 
     /**
      * Test if collection has element at this $index
@@ -358,6 +369,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         return isset($this->models[$index]);
     }
 
+
     /**
      * Set collection element with $model at $index
      *
@@ -370,6 +382,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     {
         $this->models[$index] = $model;
     }
+
 
     /**
      * Rewind the Iterator to the first element
@@ -386,6 +399,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         $this->position = 0;
     }
 
+
     /**
      * Return the current model
      *
@@ -395,6 +409,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     {
         return $this->models[$this->position];
     }
+
 
     /**
      * Return the key of the current model
@@ -406,6 +421,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         return $this->position;
     }
 
+
     /**
      * Move forward to next model
      *
@@ -416,6 +432,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         ++$this->position;
     }
 
+
     /**
      * Checks if current position is valid
      *
@@ -425,6 +442,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     {
         return isset($this->models[$this->position]);
     }
+
 
     /**
      * Count elements of an object
@@ -439,6 +457,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
         return count($this->models);
     }
+
 
     /**
      * Whether a offset exists
@@ -455,6 +474,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
         return isset($this->models[$offset]);
     }
+
 
     /**
      * Offset to set
@@ -477,6 +497,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         }
     }
 
+
     /**
      * Offset to unset
      *
@@ -492,6 +513,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
         unset($this->models[$offset]);
     }
+
 
     /**
      * Offset to retrieve

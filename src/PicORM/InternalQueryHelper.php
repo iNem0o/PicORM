@@ -39,9 +39,11 @@ class InternalQueryHelper extends QueryBuilder
 {
     /**
      * Values of where before sending to querybuilder
+     *
      * @var array
      */
     protected $_whereValues;
+
 
     /**
      * Prefix fields from where associated array
@@ -67,6 +69,7 @@ class InternalQueryHelper extends QueryBuilder
 
         return $data;
     }
+
 
     /**
      * Prefix fields from orderBy associated array
@@ -95,6 +98,7 @@ class InternalQueryHelper extends QueryBuilder
 
         return $data;
     }
+
 
     /**
      * Build where condition from find() $where params
@@ -139,6 +143,7 @@ class InternalQueryHelper extends QueryBuilder
         return $this->_whereValues;
     }
 
+
     /**
      * Return where values to prepare query
      *
@@ -148,6 +153,7 @@ class InternalQueryHelper extends QueryBuilder
     {
         return $this->_whereValues;
     }
+
 
     /**
      * Clean query before switching to another type in collections

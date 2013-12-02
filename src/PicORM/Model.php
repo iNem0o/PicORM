@@ -108,6 +108,7 @@ abstract class Model
      */
     const MANY_TO_MANY = 3;
 
+
     /**
      * Can declare model relations with calling
      * ::addRelationOneToOne()
@@ -125,6 +126,7 @@ abstract class Model
             throw new Exception(get_class(new static()) . '::$_tableName must be implemented');
         }
     }
+
 
     /**
      * Validate if this model is correctly implemented
@@ -172,6 +174,7 @@ abstract class Model
         return !empty(static::$_databaseName) ? "`" . static::$_databaseName . "`." : '';
     }
 
+
     /**
      * Format table name to using it in SQL query
      *
@@ -182,6 +185,7 @@ abstract class Model
         return self::formatDatabaseNameMySQL() . "`" . static::$_tableName . "`";
     }
 
+
     /**
      * Return primary key field name
      *
@@ -191,6 +195,7 @@ abstract class Model
     {
         return static::$_primaryKey;
     }
+
 
     /**
      * Save model in database
@@ -206,6 +211,7 @@ abstract class Model
         }
     }
 
+
     /**
      * Return model data in JSON
      *
@@ -215,6 +221,7 @@ abstract class Model
     {
         return json_encode($this->toArray());
     }
+
 
     /**
      * Return model data in an array
@@ -238,6 +245,7 @@ abstract class Model
         return $array;
     }
 
+
     /**
      * Return table field from Model
      *
@@ -258,6 +266,7 @@ abstract class Model
 
         return $fields;
     }
+
 
     /**
      * Magic call which create accessors for relation
@@ -288,6 +297,7 @@ abstract class Model
             throw new Exception("unknown method {$method}");
         }
     }
+
 
     /**
      * Unset a relation value from magic setter
@@ -324,6 +334,7 @@ abstract class Model
 
         return $isDeleted;
     }
+
 
     /**
      * Set a relation value from magic setter
@@ -424,6 +435,7 @@ abstract class Model
         return $isSaved;
     }
 
+
     /**
      * Get a relation value using magic getter
      *
@@ -520,7 +532,7 @@ abstract class Model
                     }
 
                     $relatedFieldName = "`" . $configRelation['relationTable'] . "`." . $configRelation['sourceField'];
-                    $conditionValue = $this->{$configRelation['sourceField']};
+                    $conditionValue   = $this->{$configRelation['sourceField']};
                     $selectRelations->buildWhereFromArray(array($relatedFieldName => $conditionValue));
 
                     // create collection with this model datasource instance
@@ -534,6 +546,7 @@ abstract class Model
 
         return $relationValue;
     }
+
 
     /**
      * Format class name without namespace to store a relation name
@@ -552,6 +565,7 @@ abstract class Model
 
         return strtolower($fullClassName);
     }
+
 
     /**
      * Add a OneToOne relation
@@ -611,6 +625,7 @@ abstract class Model
         );
     }
 
+
     /**
      * Add a OneToMany relation
      *
@@ -644,6 +659,7 @@ abstract class Model
             'targetField'   => $targetField,
         );
     }
+
 
     /**
      * Add a ManyToMany relation
@@ -681,6 +697,7 @@ abstract class Model
         );
     }
 
+
     /**
      * Return model array fetched from database with custom mysql query
      *
@@ -706,6 +723,7 @@ abstract class Model
         return $collection;
     }
 
+
     /**
      * Return model collection fetched from database with criteria
      *
@@ -730,6 +748,7 @@ abstract class Model
         // create a collection instance for called model with model datasource and custom created queryhelper
         return new Collection(static::$_dataSource, $queryHelper, get_called_class());
     }
+
 
     /**
      * Find one model from criteria
@@ -757,6 +776,7 @@ abstract class Model
         }
     }
 
+
     /**
      * Test if model is already save in database
      *
@@ -766,6 +786,7 @@ abstract class Model
     {
         return $this->_isNew;
     }
+
 
     /**
      * Count number of model in database from criteria
@@ -784,6 +805,7 @@ abstract class Model
 
         return isset($rawSqlFetch[0]) && isset($rawSqlFetch[0]['nb']) ? $rawSqlFetch[0]['nb'] : null;
     }
+
 
     /**
      * Build an InternalQueryHelper to select models
@@ -857,6 +879,7 @@ abstract class Model
         return $helper;
     }
 
+
     /**
      * Build a select mysql query for this model from criteria in parameters
      * return a raw mysql fetch assoc
@@ -905,6 +928,7 @@ abstract class Model
         return $query->fetchAll($pdoFetchMode);
     }
 
+
     /**
      * Hydrate model from a fetch assoc
      * including OneToOne relation auto get field
@@ -941,6 +965,7 @@ abstract class Model
         $this->_isNew = false;
     }
 
+
     /**
      * Delete this model from database
      *
@@ -972,6 +997,7 @@ abstract class Model
 
         return true;
     }
+
 
     /**
      * Update model field in database
@@ -1017,6 +1043,7 @@ abstract class Model
 
         return true;
     }
+
 
     /**
      * Insert model in database
@@ -1074,6 +1101,7 @@ abstract class Model
         return true;
     }
 
+
     /**
      * Initiates a transaction
      *
@@ -1090,6 +1118,7 @@ abstract class Model
         return $result;
     }
 
+
     /**
      * Rolls back a transaction
      *
@@ -1099,6 +1128,7 @@ abstract class Model
     {
         return static::$_dataSource->rollBack();
     }
+
 
     /**
      * Commits a transaction
@@ -1110,6 +1140,7 @@ abstract class Model
         return static::$_dataSource->commit();
     }
 
+
     /**
      * Return PDO instance
      *
@@ -1119,6 +1150,7 @@ abstract class Model
     {
         return static::$_dataSource;
     }
+
 
     /**
      * Set PDO instance

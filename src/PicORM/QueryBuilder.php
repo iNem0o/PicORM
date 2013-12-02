@@ -97,6 +97,7 @@ class QueryBuilder
     protected $_having = '';
     protected $_limit = '';
 
+
     /**
      * Construct query string from data
      *
@@ -192,6 +193,7 @@ class QueryBuilder
         return trim($query);
     }
 
+
     /**
      * Add a query hint modifier
      *
@@ -201,6 +203,7 @@ class QueryBuilder
     {
         $this->_queryHint[] = $queryHint;
     }
+
 
     /**
      * Add values (INSERT|UPDATE)
@@ -216,6 +219,7 @@ class QueryBuilder
 
         return $this;
     }
+
 
     /**
      * Create new values for insert multiple
@@ -238,6 +242,7 @@ class QueryBuilder
         return $this;
     }
 
+
     /**
      * Set values for update query
      *
@@ -255,6 +260,7 @@ class QueryBuilder
 
         return $this;
     }
+
 
     /**
      * Add field to select
@@ -274,6 +280,7 @@ class QueryBuilder
         return $this;
     }
 
+
     /**
      * Configure object for UPDATE query
      * and set the main table name
@@ -289,6 +296,7 @@ class QueryBuilder
 
         return $this;
     }
+
 
     /**
      * Configure object for DELETE query
@@ -306,6 +314,7 @@ class QueryBuilder
         return $this;
     }
 
+
     /**
      * Configure object for INSERT query
      * and set the main table name
@@ -322,6 +331,7 @@ class QueryBuilder
         return $this;
     }
 
+
     /**
      * Add FROM clause with table name and optional alias
      *
@@ -336,6 +346,7 @@ class QueryBuilder
 
         return $this;
     }
+
 
     /**
      * Add JOIN clause
@@ -353,6 +364,7 @@ class QueryBuilder
         return $this;
     }
 
+
     /**
      * Add INNER JOIN clause
      *
@@ -368,6 +380,7 @@ class QueryBuilder
         return $this;
     }
 
+
     /**
      * Add LEFT JOIN clause
      *
@@ -382,6 +395,7 @@ class QueryBuilder
 
         return $this;
     }
+
 
     /**
      * Adding WHERE clause (default with AND)
@@ -406,6 +420,7 @@ class QueryBuilder
         return $this;
     }
 
+
     /**
      * Alias to add WHERE clause with AND
      *
@@ -421,6 +436,7 @@ class QueryBuilder
 
         return $this;
     }
+
 
     /**
      * Alias to add WHERE clause with OR
@@ -438,6 +454,7 @@ class QueryBuilder
         return $this;
     }
 
+
     /**
      * Add data to ORDER BY clause
      *
@@ -453,6 +470,7 @@ class QueryBuilder
         return $this;
     }
 
+
     /**
      * Add data to GROUP BY clause
      *
@@ -467,6 +485,7 @@ class QueryBuilder
         return $this;
     }
 
+
     /**
      * Add HAVING clause
      *
@@ -480,6 +499,7 @@ class QueryBuilder
 
         return $this;
     }
+
 
     /**
      * Set LIMIT clause
@@ -503,6 +523,7 @@ class QueryBuilder
 
         return $this;
     }
+
 
     /**
      * Return all fields values set during building
