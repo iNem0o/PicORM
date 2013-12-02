@@ -118,8 +118,18 @@ class QueryBuilder
             case self::SELECT:
                 $select = implode(',', $this->_select);
                 $from   = !empty($this->_from) ? sprintf('FROM %s', $this->_from) : '';
-                $query  = sprintf("SELECT %s %s %s %s %s %s %s %s %s",
-                                  $hint, $select, $from, $join, $where, $groupBy, $this->_having, $orderBy, $limit);
+                $query  = sprintf(
+                    "SELECT %s %s %s %s %s %s %s %s %s",
+                    $hint,
+                    $select,
+                    $from,
+                    $join,
+                    $where,
+                    $groupBy,
+                    $this->_having,
+                    $orderBy,
+                    $limit
+                );
                 break;
             case self::INSERT:
                 $values = '';
@@ -177,7 +187,12 @@ class QueryBuilder
                 // build update query string
                 $query = sprintf(
                     "UPDATE %s %s SET %s %s %s %s",
-                    $this->_update, $join, $strSet, $where, $orderBy, $limit
+                    $this->_update,
+                    $join,
+                    $strSet,
+                    $where,
+                    $orderBy,
+                    $limit
                 );
                 break;
             case self::DELETE:
@@ -185,7 +200,12 @@ class QueryBuilder
                 // build delete query string
                 $query = sprintf(
                     "DELETE %s FROM %s %s %s %s %s",
-                    $this->_delete, $this->_delete, $join, $where, $orderBy, $limit
+                    $this->_delete,
+                    $this->_delete,
+                    $join,
+                    $where,
+                    $orderBy,
+                    $limit
                 );
                 break;
         }

@@ -285,7 +285,12 @@ abstract class Model
 
         // if method name begin with 'get' or 'set' or 'unset'
         // and finished with a knew relation name
-        if (preg_match('/^(get|set|unset)(.+)/', $method, $matches) && array_key_exists(strtolower($matches[2]), static::$_relations)) {
+        if (preg_match('/^(get|set|unset)(.+)/', $method, $matches)
+            && array_key_exists(
+                strtolower($matches[2]),
+                static::$_relations
+            )
+        ) {
 
             // build relation accessor method name
             $toCall = '_' . $matches[1] . 'Relation';
@@ -326,7 +331,12 @@ abstract class Model
 
                     $query = static::$_dataSource->prepare($query->buildQuery());
 
-                    $query->execute(array($this->{$configRelation['sourceField']}, $oneRelationModel->{$configRelation['targetField']}));
+                    $query->execute(
+                          array(
+                              $this->{$configRelation['sourceField']},
+                              $oneRelationModel->{$configRelation['targetField']}
+                          )
+                    );
                 }
                 $isDeleted = true;
                 break;
@@ -405,7 +415,12 @@ abstract class Model
                         $oneRelationModel->save();
                     } else {
                         // test if relation already exists between the two models
-                        $testQuery->execute(array($this->{$configRelation['sourceField']}, $oneRelationModel->{$configRelation['targetField']}));
+                        $testQuery->execute(
+                                  array(
+                                      $this->{$configRelation['sourceField']},
+                                      $oneRelationModel->{$configRelation['targetField']}
+                                  )
+                        );
                         $errorcode = $testQuery->errorInfo();
                         if ($errorcode[0] != "00000") {
                             throw new Exception($errorcode[2]);
@@ -419,7 +434,12 @@ abstract class Model
                     }
 
                     // create link in relation table
-                    $insertQuery->execute(array($this->{$configRelation['sourceField']}, $oneRelationModel->{$configRelation['targetField']}));
+                    $insertQuery->execute(
+                                array(
+                                    $this->{$configRelation['sourceField']},
+                                    $oneRelationModel->{$configRelation['targetField']}
+                                )
+                    );
                     $errorcode = $insertQuery->errorInfo();
 
                     // check if data is stored with no error
@@ -509,23 +529,35 @@ abstract class Model
                     $selectRelations
                         ->select("t.*")
                         ->from($classRelation::formatTableNameMySQL(), 't')
-                        ->innerJoin($configRelation['relationTable'], $configRelation['relationTable'] . "." . $configRelation['targetField'] . " = t." . $configRelation['targetField']);
+                        ->innerJoin(
+                        $configRelation['relationTable'],
+                            $configRelation['relationTable'] . "." . $configRelation['targetField'] . " = t." . $configRelation['targetField']
+                        );
 
                     // check one to one relation with auto get fields
                     // and append needed fields to select
                     $nbRelation = 0;
                     foreach ($classRelation::$_relations as $uneRelation) {
-                        if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && count($uneRelation['autoGetFields']) > 0) {
+                        if ($uneRelation['typeRelation'] == self::ONE_TO_ONE
+                            && count($uneRelation['autoGetFields']) > 0
+                        ) {
                             // add auto get fields to select
-                            foreach ($uneRelation['autoGetFields'] as &$oneField)
+                            foreach ($uneRelation['autoGetFields'] as &$oneField) {
                                 $oneField = 'rel' . $nbRelation . "." . $oneField;
+                            }
 
                             // add fields to select
                             $selectRelations->select($uneRelation['autoGetFields']);
 
                             // add query join corresponding to the relation
-                            $selectRelations->leftJoin($uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
-                                                       'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $classRelation::formatTableNameMySQL() . '.`' . $uneRelation['sourceField'] . '`');
+                            $relationFieldName = 'rel' . $nbRelation . '.`' . $uneRelation['targetField'];
+                            $relationField = $classRelation::formatTableNameMySQL() . '.`' . $uneRelation['sourceField'] . '`';
+                            $selectRelations
+                                ->leftJoin(
+                                    $uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
+                                    $relationFieldName. '` = ' .$relationField
+                                );
+
                             // increment relation count used in prefix
                             $nbRelation++;
                         }
@@ -580,8 +612,13 @@ abstract class Model
      *
      * @return void
      */
-    protected static function addRelationOneToOne($sourceField, $classRelation, $targetField, $autoGetFields = array(), $aliasRelation = '')
-    {
+    protected static function addRelationOneToOne(
+        $sourceField,
+        $classRelation,
+        $targetField,
+        $autoGetFields = array(),
+        $aliasRelation = ''
+    ) {
         if (!is_string($sourceField)) {
             throw new Exception('$sourceField have to be a string');
         }
@@ -672,8 +709,13 @@ abstract class Model
      *
      * @throws Exception
      */
-    protected static function addRelationManyToMany($sourceField, $classRelation, $targetField, $relationTable, $aliasRelation = '')
-    {
+    protected static function addRelationManyToMany(
+        $sourceField,
+        $classRelation,
+        $targetField,
+        $relationTable,
+        $aliasRelation = ''
+    ) {
         // test is related class is a PicORM model
         if (!class_exists($classRelation) || !new $classRelation() instanceof Model) {
             throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of PicORM\Model");
@@ -821,8 +863,13 @@ abstract class Model
      *
      * @return InternalQueryHelper
      */
-    protected static function buildSelectQuery($fields = array('*'), $where = array(), $order = array(), $limitStart = null, $limitEnd = null)
-    {
+    protected static function buildSelectQuery(
+        $fields = array('*'),
+        $where = array(),
+        $order = array(),
+        $limitStart = null,
+        $limitEnd = null
+    ) {
         // get the formatted model mysql table name with database name
         $modelTableName = static::formatTableNameMySQL();
 
@@ -851,14 +898,17 @@ abstract class Model
         foreach (static::$_relations as $uneRelation) {
             if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && count($uneRelation['autoGetFields']) > 0) {
                 // prefix fields
-                foreach ($uneRelation['autoGetFields'] as &$oneField)
+                foreach ($uneRelation['autoGetFields'] as &$oneField) {
                     $oneField = 'rel' . $nbRelation . "." . $oneField;
+                }
                 // add fields to select
                 $helper->select($uneRelation['autoGetFields']);
 
                 // add query join corresponding to the relation
-                $helper->leftJoin($uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
-                                  'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $modelTableName . '.`' . $uneRelation['sourceField'] . '`');
+                $helper->leftJoin(
+                       $uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
+                           'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $modelTableName . '.`' . $uneRelation['sourceField'] . '`'
+                );
 
                 // increment relation count used in prefix
                 $nbRelation++;
@@ -898,8 +948,14 @@ abstract class Model
      * @return array
      * @throws Exception
      */
-    public static function select($fields = array('*'), $where = array(), $order = array(), $limitStart = null, $limitEnd = null, $pdoFetchMode = null)
-    {
+    public static function select(
+        $fields = array('*'),
+        $where = array(),
+        $order = array(),
+        $limitStart = null,
+        $limitEnd = null,
+        $pdoFetchMode = null
+    ) {
         // validate model PHP structure if necessary
         static::_validateModel();
 
