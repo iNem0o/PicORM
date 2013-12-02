@@ -21,6 +21,14 @@ $cloverWriter = new \mageekguy\atoum\writers\file(__DIR__.'/coverage.xml');
 $clover = new \mageekguy\atoum\reports\asynchronous\clover();
 $clover->addWriter($cloverWriter);
 
+$coverageField = new \mageekguy\atoum\report\fields\runner\coverage\html(
+    'PicORM',
+    __DIR__.'/code-coverage'
+);
+$script
+    ->addDefaultReport()
+    ->addField($coverageField)
+;
 $runner->addReport($clover);
 $runner->addReport($xunit);
 $runner->addReport($cli);
