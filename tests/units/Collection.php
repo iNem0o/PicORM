@@ -6,9 +6,9 @@ use PicORM\Model;
 
 class Collection extends atoum
 {
-
     public function afterTestMethod($testMethod)
     {
+        exit('OKKK');
         Model::getDataSource()->query('TRUNCATE brands');
         Model::getDataSource()->query('TRUNCATE cars');
         Model::getDataSource()->query('TRUNCATE car_have_tag');
