@@ -284,7 +284,7 @@ class Model extends atoum
      */
     public function test__toJson(\Brand $testBrand, $bddResult)
     {
-        $this->string($testBrand->__toJson())
+        $this->string($testBrand->toJson())
              ->isEqualTo('{"idBrand":"' . $bddResult['idBrand'] . '","nameBrand":"' . $bddResult['nameBrand'] . '","noteBrand":' . $bddResult['noteBrand'] . '}');
     }
 

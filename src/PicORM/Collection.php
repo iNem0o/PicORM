@@ -1,65 +1,114 @@
 <?php
+/**
+ * This file is part of PicORM.
+ *
+ * PicORM is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PicORM is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with PicORM.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * PHP version 5.4
+ *
+ * @category Collection
+ * @package  PicORM
+ * @author   iNem0o <contact@inem0o.fr>
+ * @license  LGPL http://opensource.org/licenses/lgpl-license.php
+ * @link     https://github.com/iNem0o/PicORM
+ */
+
 namespace PicORM;
 
 /**
- * Store a model list defined by a InternalQueryHelper
+ * Class Collection
+ *
+ * Store a model array fetched from an InternalQueryHelper
  * and allow to fetch / modify / delete them
- * @package PicORM
+ *
+ * @category Collection
+ * @package  PicORM
+ * @author   iNem0o <contact@inem0o.fr>
+ * @license  LGPL http://opensource.org/licenses/lgpl-license.php
+ * @link     https://github.com/iNem0o/PicORM
  */
 class Collection implements \Iterator, \Countable, \ArrayAccess
 {
     /**
      * Active or not pagination
+     *
      * @var bool
      */
     protected $_usePagination = false;
 
     /**
      * Number of model by page
+     *
      * @var int
      */
     protected $_paginationNbModelByPage = 0;
 
     /**
      * Total models rows founded during pagination
+     *
      * @var int
      */
     protected $_paginationFoundModels = 0;
 
     /**
      * Iterator pointer position
+     *
      * @var int
      */
     protected $position = 0;
 
     /**
      * Models
+     *
      * @var array
      */
     protected $models = array();
 
     /**
      * Boolean to test if collection have been already fetched
+     *
      * @var bool
      */
     protected $isFetched = false;
 
     /**
      * Datasource to execute query
+     *
      * @var \PDO
      */
     protected $_dataSource;
 
     /**
      * Model class name
+     *
      * @var
      */
     private $_className;
 
     /**
-     * @param \PDO                $dataSource
-     * @param InternalQueryHelper $queryHelper
-     * @param                     $className
+     * QueryBuilder to fetch collection
+     *
+     * @var InternalQueryHelper
+     */
+    protected $_queryHelper;
+
+    /**
+     * Constructor
+     *
+     * @param \PDO                $dataSource  - Pdo instance
+     * @param InternalQueryHelper $queryHelper - QueryBuilder to fetch collection
+     * @param                     $className   - class name of the model
      */
     public function __construct(\PDO $dataSource, InternalQueryHelper $queryHelper, $className)
     {
@@ -70,6 +119,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Return collection query helper
+     *
      * @return InternalQueryHelper
      */
     public function getQueryHelper()
@@ -79,7 +129,10 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Define collection query helper
-     * @return InternalQueryHelper
+     *
+     * @param QueryBuilder $queryHelper - Query builder to set inside collection
+     *
+     * @return void
      */
     public function setQueryHelper(QueryBuilder $queryHelper)
     {
@@ -88,6 +141,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Execute query and fetch models from database
+     *
      * @return $this
      * @throws Exception
      */
@@ -132,7 +186,9 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Delete model in collection
+     *
      * @throws Exception
+     * @return bool - true if deleted
      */
     public function delete()
     {
@@ -154,6 +210,8 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         if ($errorcode[0] != "00000") {
             throw new Exception($errorcode[2]);
         }
+
+        return true;
     }
 
     /**
@@ -214,6 +272,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Return total page available
+     *
      * @return int
      */
     public function getTotalPages()
@@ -232,11 +291,13 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
      * Paginate collection to match a num page
      *
      * @param $neededNumPage
+     *
+     * @return Collection
      */
     public function paginate($neededNumPage)
     {
         if ($this->_usePagination === false) {
-            return;
+            return $this;
         }
 
         // build the limit start
@@ -245,6 +306,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         // limit fetch query for page $neededNumPage
         $this->_queryHelper->limit($limitStart, $this->_paginationNbModelByPage);
 
+        return $this;
     }
 
 
@@ -252,15 +314,20 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
      * Enable pagination in collection
      *
      * @param $nbModelByPage - Number of model by page
+     *
+     * @return Collection
      */
     public function activePagination($nbModelByPage)
     {
         $this->_usePagination           = true;
         $this->_paginationNbModelByPage = $nbModelByPage;
+
+        return $this;
     }
 
     /**
      * Fetch the mysql found_rows from last select query
+     *
      * @return mixed
      */
     public function foundModels()
@@ -314,6 +381,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Return the current model
+     *
      * @return Model
      */
     public function current()
@@ -323,6 +391,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Return the key of the current model
+     *
      * @return int|mixed
      */
     public function key()
@@ -340,6 +409,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Checks if current position is valid
+     *
      * @return bool - Returns true on success or false on failure
      */
     public function valid()
@@ -349,6 +419,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Count elements of an object
+     *
      * @return int The custom count as an integer.
      */
     public function count()

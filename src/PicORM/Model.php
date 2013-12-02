@@ -1,54 +1,94 @@
 <?php
-namespace PicORM;
 /**
- * PicORM is a simple and light PHP Object-Relational Mapping
+ * This file is part of PicORM.
+ *
+ * PicORM is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PicORM is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with PicORM.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * PHP version 5.4
+ *
+ * @category Model
+ * @package  PicORM
+ * @author   iNem0o <contact@inem0o.fr>
+ * @license  LGPL http://opensource.org/licenses/lgpl-license.php
+ * @link     https://github.com/iNem0o/PicORM
+ */
+
+namespace PicORM;
+
+/**
+ * Class Model
+ *
+ * @category Model
+ * @package  PicORM
+ * @author   iNem0o <contact@inem0o.fr>
+ * @license  LGPL http://opensource.org/licenses/lgpl-license.php
+ * @link     https://github.com/iNem0o/PicORM
  */
 abstract class Model
 {
     /**
      * Table primary key
+     *
      * @var null
      */
     protected static $_primaryKey = null;
 
     /**
      * Model Database name
+     *
      * @var string
      */
     protected static $_databaseName = null;
 
     /**
      * Model table name
+     *
      * @var string
      */
     protected static $_tableName = null;
 
     /**
      * Model relations
+     *
      * @var array
      */
     protected static $_relations = null;
 
     /**
      * SQL fields from table without primary key
+     *
      * @var array
      */
     protected static $_tableFields = null;
 
     /**
      * Array to store OOP declaration status of each Model subclass
+     *
      * @var array
      */
     private static $validationStatus = array();
 
     /**
      * Datasource instance
+     *
      * @var \PDO
      */
     protected static $_dataSource;
 
     /**
      * Define if model have been saved
+     *
      * @var bool
      */
     protected $_isNew = true;
@@ -72,6 +112,7 @@ abstract class Model
      * Can declare model relations with calling
      * ::addRelationOneToOne()
      * ::addRelationOneToMany()
+     *
      * @throws Exception
      */
     protected static function defineRelations()
@@ -85,6 +126,8 @@ abstract class Model
 
     /**
      * Validate if this model is correctly implemented
+     *
+     * @return void
      * @throws Exception
      */
     protected static function _validateModel()
@@ -119,6 +162,7 @@ abstract class Model
 
     /**
      * Format database name to using it in SQL query
+     *
      * @return string
      */
     public static function formatDatabaseNameMySQL()
@@ -128,6 +172,7 @@ abstract class Model
 
     /**
      * Format table name to using it in SQL query
+     *
      * @return string
      */
     public static function formatTableNameMySQL()
@@ -137,6 +182,7 @@ abstract class Model
 
     /**
      * Return primary key field name
+     *
      * @return string
      */
     public static function getPrimaryKeyFieldName()
@@ -158,11 +204,12 @@ abstract class Model
 
     /**
      * Return model data in JSON
-     * @return json
+     *
+     * @return string - json representation of the model
      */
-    public function __toJson()
+    public function toJson()
     {
-        return json_encode($this->__toArray());
+        return json_encode($this->toArray());
     }
 
     /**
@@ -172,7 +219,7 @@ abstract class Model
      *
      * @return array
      */
-    public function __toArray($includePrimary = true)
+    public function toArray($includePrimary = true)
     {
         if ($includePrimary) {
             $array = array(static::$_primaryKey => $this->{static::$_primaryKey});
@@ -211,8 +258,8 @@ abstract class Model
     /**
      * Magic call which create accessors for relation
      *
-     * @param $method
-     * @param $args
+     * @param $method - method name
+     * @param $args   - method arguments
      *
      * @return mixed
      * @throws Exception
@@ -240,8 +287,8 @@ abstract class Model
     /**
      * Unset a relation value from magic setter
      *
-     * @param array $configRelation
-     * @param       $callArgs
+     * @param array $configRelation - Relation configuration
+     * @param array $callArgs       - Models instance
      *
      * @todo unset other relations type
      * @return bool
@@ -377,6 +424,7 @@ abstract class Model
      * @param array $configRelation
      * @param array $callArgs
      *
+     * @throw Exception
      * @return null
      */
     private function _getRelation(array $configRelation, $callArgs)
@@ -406,65 +454,73 @@ abstract class Model
         switch ($configRelation['typeRelation']) {
             case self::ONE_TO_ONE:
                 $classRelation = $configRelation['classRelation'];
+                if (is_subclass_of($classRelation, 'PicORM\Model')) {
+                    // add model relation relation field to where
+                    $where = array_merge(
+                        $where,
+                        array($configRelation['targetField'] => $this->{$configRelation['sourceField']})
+                    );
 
-                // add model relation relation field to where
-                $where = array_merge(
-                    $where,
-                    array($configRelation['targetField'] => $this->{$configRelation['sourceField']})
-                );
-
-                // grab the related model
-                $relationValue = $classRelation::findOne($where, $order);
-
+                    // grab the related model
+                    $relationValue = $classRelation::findOne($where, $order);
+                } else {
+                    throw new Exception(sprintf("%s must be a subclass of PicORM\Model", $classRelation));
+                }
                 break;
             case self::ONE_TO_MANY:
                 $classRelation = $configRelation['classRelation'];
+                if (is_subclass_of($classRelation, 'PicORM\Model')) {
+                    // add model relation relation field to where
+                    $where = array_merge(
+                        $where,
+                        array($configRelation['targetField'] => $this->{$configRelation['sourceField']})
+                    );
 
-                // add model relation relation field to where
-                $where = array_merge(
-                    $where,
-                    array($configRelation['targetField'] => $this->{$configRelation['sourceField']})
-                );
-
-                // grab the related models
-                $relationValue = $classRelation::find($where, $order, $limitStart, $limitEnd);
+                    // grab the related models
+                    $relationValue = $classRelation::find($where, $order, $limitStart, $limitEnd);
+                } else {
+                    throw new Exception(sprintf("%s must be a subclass of PicORM\Model", $classRelation));
+                }
                 break;
             case self::MANY_TO_MANY:
                 $classRelation = $configRelation['classRelation'];
+                if (is_subclass_of($classRelation, 'PicORM\Model')) {
+                    // create the select query for related models using relation table
+                    $selectRelations = new InternalQueryHelper();
+                    $selectRelations
+                        ->select("t.*")
+                        ->from($classRelation::formatTableNameMySQL(), 't')
+                        ->innerJoin($configRelation['relationTable'], $configRelation['relationTable'] . "." . $configRelation['targetField'] . " = t." . $configRelation['targetField']);
 
-                // create the select query for related models using relation table
-                $selectRelations = new InternalQueryHelper();
-                $selectRelations
-                    ->select("t.*")
-                    ->from($classRelation::formatTableNameMySQL(), 't')
-                    ->innerJoin($configRelation['relationTable'], $configRelation['relationTable'] . "." . $configRelation['targetField'] . " = t." . $configRelation['targetField']);
+                    // check one to one relation with auto get fields
+                    // and append needed fields to select
+                    $nbRelation = 0;
+                    foreach ($classRelation::$_relations as $uneRelation) {
+                        if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && count($uneRelation['autoGetFields']) > 0) {
+                            // add auto get fields to select
+                            foreach ($uneRelation['autoGetFields'] as &$oneField)
+                                $oneField = 'rel' . $nbRelation . "." . $oneField;
 
-                // check one to one relation with auto get fields
-                // and append needed fields to select
-                $nbRelation = 0;
-                foreach ($classRelation::$_relations as $uneRelation) {
-                    if ($uneRelation['typeRelation'] == self::ONE_TO_ONE && count($uneRelation['autoGetFields']) > 0) {
-                        // add auto get fields to select
-                        foreach ($uneRelation['autoGetFields'] as &$oneField)
-                            $oneField = 'rel' . $nbRelation . "." . $oneField;
+                            // add fields to select
+                            $selectRelations->select($uneRelation['autoGetFields']);
 
-                        // add fields to select
-                        $selectRelations->select($uneRelation['autoGetFields']);
-
-                        // add query join corresponding to the relation
-                        $selectRelations->leftJoin($uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
-                                                   'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $classRelation::formatTableNameMySQL() . '.`' . $uneRelation['sourceField'] . '`');
-                        // increment relation count used in prefix
-                        $nbRelation++;
+                            // add query join corresponding to the relation
+                            $selectRelations->leftJoin($uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
+                                                       'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $classRelation::formatTableNameMySQL() . '.`' . $uneRelation['sourceField'] . '`');
+                            // increment relation count used in prefix
+                            $nbRelation++;
+                        }
                     }
-                }
-                $selectRelations->buildWhereFromArray(
-                                array("`" . $configRelation['relationTable'] . "`." . $configRelation['sourceField'] => $this->{$configRelation['sourceField']})
-                );
+                    $selectRelations->buildWhereFromArray(
+                                    array("`" . $configRelation['relationTable'] . "`." . $configRelation['sourceField'] => $this->{$configRelation['sourceField']})
+                    );
 
-                // create collection with this model datasource instance
-                // hydrating $classRelation model and using $selectRelation query helper
-                $relationValue = new Collection(static::getDataSource(), $selectRelations, $classRelation);
+                    // create collection with this model datasource instance
+                    // hydrating $classRelation model and using $selectRelation query helper
+                    $relationValue = new Collection(static::getDataSource(), $selectRelations, $classRelation);
+                } else {
+                    throw new Exception(sprintf("%s must be a subclass of PicORM\Model", $classRelation));
+                }
                 break;
         }
 
@@ -694,6 +750,7 @@ abstract class Model
 
     /**
      * Test if model is already save in database
+     *
      * @return bool
      */
     public function isNew()
@@ -877,6 +934,7 @@ abstract class Model
 
     /**
      * Delete this model from database
+     *
      * @return array
      * @throws Exception
      */
@@ -908,6 +966,7 @@ abstract class Model
 
     /**
      * Update model field in database
+     *
      * @return bool
      * @throws Exception
      */
@@ -1008,6 +1067,7 @@ abstract class Model
 
     /**
      * Initiates a transaction
+     *
      * @return bool
      * @throws Exception
      */
@@ -1023,6 +1083,7 @@ abstract class Model
 
     /**
      * Rolls back a transaction
+     *
      * @return boolean
      */
     public static function rollback()
@@ -1032,6 +1093,7 @@ abstract class Model
 
     /**
      * Commits a transaction
+     *
      * @return boolean
      */
     public static function commit()
@@ -1041,6 +1103,7 @@ abstract class Model
 
     /**
      * Return PDO instance
+     *
      * @return \PDO
      */
     public static function getDataSource()

@@ -1,29 +1,58 @@
 <?php
+/**
+ * This file is part of PicORM.
+ *
+ * PicORM is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PicORM is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with PicORM.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * PHP version 5.4
+ *
+ * @category Core
+ * @package  PicORM
+ * @author   iNem0o <contact@inem0o.fr>
+ * @license  LGPL http://opensource.org/licenses/lgpl-license.php
+ * @link     https://github.com/iNem0o/PicORM
+ */
 namespace PicORM;
-
-class Exception extends \Exception
-{
-}
 
 /**
  * Class PicORM
- * @package PicORM
+ * Static class to configure libraries from user option
+ *
+ * @category Core
+ * @package  PicORM
+ * @author   iNem0o <contact@inem0o.fr>
+ * @license  LGPL http://opensource.org/licenses/lgpl-license.php
+ * @link     https://github.com/iNem0o/PicORM
  */
 class PicORM
 {
     /**
      * Datasource instance
+     *
      * @var \PDO
      */
     protected static $_dataSource;
     /**
      * Configuration array
+     *
      * @var \PDO
      */
     protected static $_configuration;
 
     /**
      * Default PicORM configuration
+     *
      * @var array
      */
     protected static $_defaultConfiguration = array(

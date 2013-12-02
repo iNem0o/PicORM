@@ -1,33 +1,67 @@
 <?php
+/**
+ * This file is part of PicORM.
+ *
+ * PicORM is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PicORM is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with PicORM.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * PHP version 5.4
+ *
+ * @category Query
+ * @package  PicORM
+ * @author   iNem0o <contact@inem0o.fr>
+ * @license  LGPL http://opensource.org/licenses/lgpl-license.php
+ * @link     https://github.com/iNem0o/PicORM
+ */
+
 namespace PicORM;
 
 /**
  * Class QueryBuilder
  * Allow you to easily build MySQL query using PHP Object
- * @package PicORM
+ *
+ * @category Query
+ * @package  PicORM
+ * @author   iNem0o <contact@inem0o.fr>
+ * @license  LGPL http://opensource.org/licenses/lgpl-license.php
+ * @link     https://github.com/iNem0o/PicORM
  */
 class QueryBuilder
 {
     /**
      * Fields names (UPDATE)
+     *
      * @var array
      */
     protected $_setName = array();
 
     /**
      * Fields values (UPDATE)
+     *
      * @var array
      */
     protected $_setVal = array();
 
     /**
      * Insert VALUES (UPDATE or INSERT)
+     *
      * @var array
      */
     protected $_insertValues = array();
 
     /**
      * Temp insert values
+     *
      * @var array
      */
     protected $_lastInsertValues = array();
@@ -44,6 +78,7 @@ class QueryBuilder
 
     /**
      * Define query TYPE (UPDATE|INSERT|DELETE|SELECT)
+     *
      * @var
      */
     protected $_queryType;
@@ -64,6 +99,7 @@ class QueryBuilder
 
     /**
      * Construct query string from data
+     *
      * @return string
      * @throws Exception
      */
@@ -169,8 +205,8 @@ class QueryBuilder
     /**
      * Add values (INSERT|UPDATE)
      *
-     * @param $nameParams
-     * @param $val
+     * @param string $nameParams - field name
+     * @param string $val        - field value
      *
      * @return $this
      */
@@ -184,8 +220,8 @@ class QueryBuilder
     /**
      * Create new values for insert multiple
      *
-     * @param $nameParams
-     * @param $val
+     * @param $nameParams - field name
+     * @param $val        - field value
      *
      * @return $this
      */
@@ -204,6 +240,7 @@ class QueryBuilder
 
     /**
      * Set values for update query
+     *
      * @alias values
      *
      * @param $nameParams
@@ -469,6 +506,7 @@ class QueryBuilder
 
     /**
      * Return all fields values set during building
+     *
      * @return array
      */
     public function getParams()
