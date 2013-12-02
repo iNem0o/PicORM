@@ -37,19 +37,18 @@ namespace PicORM;
  */
 class InternalQueryHelper extends QueryBuilder
 {
+    /**
+     * Values of where before sending to querybuilder
+     * @var array
+     */
     protected $_whereValues;
-
-    public function __construct()
-    {
-
-    }
 
     /**
      * Prefix fields from where associated array
      * with table name
      *
-     * @param $data
-     * @param $tableName
+     * @param array  $data      - associative array with where data
+     * @param string $tableName - table name to use as prefix
      *
      * @return mixed
      */
@@ -73,8 +72,8 @@ class InternalQueryHelper extends QueryBuilder
      * Prefix fields from orderBy associated array
      * with table name
      *
-     * @param $data
-     * @param $tableName
+     * @param array  $data      - associative array with order data
+     * @param string $tableName - table name to use as prefix
      *
      * @return mixed
      */
@@ -100,14 +99,14 @@ class InternalQueryHelper extends QueryBuilder
     /**
      * Build where condition from find() $where params
      *
-     * @param $where
+     * @param array $where - associative array with where needed values
      *
      * @return $this
      */
     public function buildWhereFromArray($where)
     {
         if (count($where) == 0) {
-            return $this;
+            return $this->_whereValues;
         }
 
         foreach ($where as $fieldName => $oneCritera) {
