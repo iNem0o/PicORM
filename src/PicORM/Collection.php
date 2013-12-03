@@ -153,11 +153,6 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     {
         $modelName = $this->_className;
 
-        // if pagination is used, adding found rows mysql hint
-        if ($this->_usePagination) {
-            $this->_queryHelper->queryHint("SQL_CALC_FOUND_ROWS");
-        }
-
         // execute fetch query
         $query = $this->_dataSource->prepare($this->_queryHelper->buildQuery());
         $query->execute($this->_queryHelper->getWhereParamsValues());
@@ -183,7 +178,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
 
         // if pagination used grab the total found model
         if ($this->_usePagination) {
-            $this->_paginationFoundModels = $this->foundModels();
+            $this->_paginationFoundModels = $this->queryFoundModels();
         }
 
         return $this;
@@ -337,19 +332,42 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         return $this;
     }
 
-
     /**
-     * Fetch the mysql found_rows from last select query
+     * Execute query to count number of model in database without limit
      *
      * @return mixed
      */
-    public function foundModels()
+    protected function queryFoundModels()
+    {
+        $countQueryHelper = clone($this->_queryHelper);
+        $countQueryHelper->resetSelect("count(*)");
+        $countQueryHelper->resetOrderBy();
+        $countQueryHelper->resetLimit();
+        $query = $this -> _dataSource -> prepare($countQueryHelper->buildQuery());
+        $query->execute($countQueryHelper->getWhereParamsValues());
+
+        return (int)$query->fetch(\PDO::FETCH_COLUMN);
+    }
+
+
+    /**
+     * Remove limit from fetch query and count the number
+     * of models in database
+     *
+     * @return mixed
+     */
+    public function countModelsWithoutLimit()
     {
         if (!$this->isFetched) {
             $this->fetchCollection();
         }
 
-        return (int)$this->_dataSource->query('SELECT FOUND_ROWS();')->fetch(\PDO::FETCH_COLUMN);
+        // no pagination, we have to manually count number of model
+        if (!$this->_usePagination) {
+            $this->_paginationFoundModels = $this->queryFoundModels();
+        }
+
+        return $this->_paginationFoundModels;
     }
 
 

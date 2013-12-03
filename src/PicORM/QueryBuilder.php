@@ -300,6 +300,20 @@ class QueryBuilder
         return $this;
     }
 
+    /**
+     * Reset select and add a new field
+     *
+     * @param $field
+     *
+     * @return $this
+     */
+    public function resetSelect($field)
+    {
+        $this->_select = array($field);
+
+        return $this;
+    }
+
 
     /**
      * Configure object for UPDATE query
@@ -490,6 +504,18 @@ class QueryBuilder
         return $this;
     }
 
+    /**
+     * Delete the order clause from query
+     *
+     * @return $this
+     */
+    public function resetOrderBy()
+    {
+        $this->_orderBy = array();
+
+        return $this;
+    }
+
 
     /**
      * Add data to GROUP BY clause
@@ -540,6 +566,18 @@ class QueryBuilder
         } else {
             $this->_limit = sprintf('LIMIT %d, %d', $limitStart, $limitEnd);
         }
+
+        return $this;
+    }
+
+    /**
+     * Delete the limit clause from query
+     *
+     * @return $this
+     */
+    public function resetLimit()
+    {
+        $this->_limit = '';
 
         return $this;
     }
