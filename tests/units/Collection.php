@@ -2,6 +2,7 @@
 namespace PicORM\tests\units;
 
 use \atoum;
+use PicORM\InternalQueryHelper;
 use PicORM\Model;
 
 class Collection extends atoum
@@ -42,6 +43,48 @@ class Collection extends atoum
         return array(
             array($testBrand, $cars)
         );
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
+    public function testGetQueryHelper($testBrand, $cars)
+    {
+        $collection = \Car::find();
+
+        $property = new \ReflectionProperty('\PicORM\Collection', '_queryHelper');
+        $property->setAccessible(true);
+
+        $this
+            ->object($property->getValue($collection))
+            ->isCloneOf($collection->getQueryHelper());
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
+    public function testSetQueryHelper($testBrand, $cars)
+    {
+        $query = new InternalQueryHelper();
+        $collection = \Car::find();
+        $collection -> setQueryHelper($query);
+        $property = new \ReflectionProperty('\PicORM\Collection', '_queryHelper');
+        $property->setAccessible(true);
+
+        $this
+            ->object($property->getValue($collection))
+            ->isIdenticalTo($query);
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
+    public function testGet($testBrand, $cars)
+    {
+        $carCollection = \Car::find();
+        $this->string($cars[0]->idCar)->isIdenticalTo($carCollection->get(0)->idCar);
+        $this->string($cars[1]->idCar)->isIdenticalTo($carCollection->get(1)->idCar);
+        $this->string($cars[2]->idCar)->isIdenticalTo($carCollection->get(2)->idCar);
     }
 
     /**
@@ -89,6 +132,22 @@ class Collection extends atoum
     /**
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
+    public function testCountModelsWithoutLimit($testBrand, $cars) {
+        $collection = \Car::find();
+        $collection->activePagination(10);
+        $collection->paginate(1);
+        $this->integer($collection->countModelsWithoutLimit())->isEqualTo(3);
+
+        // test with no pagination active
+
+        $collection = \Car::find();
+        $this->integer($collection->countModelsWithoutLimit())->isEqualTo(3);
+    }
+
+
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
     public function testPagination($testBrand, $cars)
     {
         self::createAndSaveRawModelWithOneToManyRelation();
@@ -102,9 +161,26 @@ class Collection extends atoum
         $collection->activePagination(5);
         $collection->paginate(1);
 
+        // test total page and count interface
         $this->integer($collection->getTotalPages())->isEqualTo(4);
         $this->integer(count($collection))->isEqualTo(5);
+
+        // test ArrayAccess
+        $this->boolean($collection->has(0))->isEqualTo(true);
+        $this->boolean($collection->has(999999))->isEqualTo(false);
+        $this->string($collection->get(0)->idCar)->isEqualTo($cars[0]->idCar);
+
+        $collection->set(5,$cars[0]);
+        $this->string($collection[5]->idCar)->isEqualTo($cars[0]->idCar);
+
+
+        // tests if pagination is not active
+        $collection = \Car::find();
+        $this->integer($collection->getTotalPages())->isEqualTo(0);
+        $this->object($collection->paginate(1))->isIdenticalTo($collection);
+
     }
+
 
 
 }
