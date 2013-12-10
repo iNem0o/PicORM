@@ -73,4 +73,20 @@ class InternalQueryHelper extends atoum
              ->integer($resParams[0])->isEqualTo(1)
              ->string($resParams[1])->isEqualTo('hello world');
     }
+
+    /**
+     * @dataProvider createInternalQueryHelper
+     */
+    public function testCleanQueryBeforeSwitching(\PicORM\InternalQueryHelper $selectInternalQueryBuilder) {
+
+        $selectInternalQueryBuilder -> select("*") -> from("table")->innerJoin("table2","ON table.id = table2.id");
+        $selectInternalQueryBuilder->cleanQueryBeforeSwitching();
+
+        $property = new \ReflectionProperty("\PicORM\InternalQueryHelper", '_join');
+        $property->setAccessible(true);
+
+        $this
+            ->integer(count($property->getValue($selectInternalQueryBuilder)))
+            ->isEqualTo(0);
+    }
 }

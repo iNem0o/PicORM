@@ -107,7 +107,7 @@ class InternalQueryHelper extends QueryBuilder
      *
      * @return $this
      */
-    public function buildWhereFromArray($where)
+    public function buildWhereFromArray(array $where)
     {
         if (count($where) == 0) {
             return $this->_whereValues;

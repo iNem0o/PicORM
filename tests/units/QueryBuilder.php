@@ -147,6 +147,62 @@ class QueryBuilder extends atoum
     /**
      * @dataProvider createQueryBuilder
      */
+    public function testQueryHint(\PicORM\QueryBuilder $selectQueryBuilder) {
+        $selectQueryBuilder
+            ->queryHint("SQL_NO_CACHE")
+            ->select("*")
+            ->from("table");
+        $this->string($selectQueryBuilder->buildQuery())->isEqualTo("SELECT  SQL_NO_CACHE  * FROM table");
+    }
+
+    /**
+     * @dataProvider createQueryBuilder
+     */
+    public function testResetSelect(\PicORM\QueryBuilder $selectQueryBuilder) {
+        $selectQueryBuilder->select("field")
+            ->from("table")
+            ->resetSelect();
+        $this->string($selectQueryBuilder->buildQuery())->isEqualTo("SELECT   FROM table");
+
+        $selectQueryBuilder->resetSelect("field");
+        $this->string($selectQueryBuilder->buildQuery())->isEqualTo("SELECT  field FROM table");
+    }
+
+    /**
+     * @dataProvider createQueryBuilder
+     */
+    public function testResetOrderBy(\PicORM\QueryBuilder $selectQueryBuilder) {
+        $selectQueryBuilder->select("field")
+            ->from("table")
+            ->orderBy("field")
+            ->resetOrderBy();
+        $this->string($selectQueryBuilder->buildQuery())->isEqualTo("SELECT  field FROM table");
+
+        $selectQueryBuilder->resetOrderBy('field','ASC');
+        $this->string($selectQueryBuilder->buildQuery())->isEqualTo("SELECT  field FROM table      ORDER BY field ASC");
+    }
+
+
+    /**
+     * @dataProvider createQueryBuilder
+     */
+    public function testResetLimit(\PicORM\QueryBuilder $selectQueryBuilder) {
+        $selectQueryBuilder->select("field")
+            ->from("table")
+            ->limit("10")
+            -> resetLimit();
+
+        $this->string($selectQueryBuilder->buildQuery())->isEqualTo("SELECT  field FROM table");
+
+        $selectQueryBuilder-> resetLimit(15,10);
+
+        $this->string($selectQueryBuilder->buildQuery())->isEqualTo("SELECT  field FROM table       LIMIT 15, 10");
+
+    }
+
+    /**
+     * @dataProvider createQueryBuilder
+     */
     public function testBuildSelectQuery(\PicORM\QueryBuilder $selectQueryBuilder)
     {
 
@@ -199,6 +255,9 @@ class QueryBuilder extends atoum
         $selectQueryBuilder->limit(10, 5);
         $resultQuery .= ' LIMIT 10, 5';
         $this->string($selectQueryBuilder->buildQuery())->isEqualTo($resultQuery);
+
+        $this -> object($selectQueryBuilder) -> isIdenticalTo($selectQueryBuilder -> limit());
+
     }
 
     public static function createQueryBuilder()

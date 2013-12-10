@@ -181,6 +181,61 @@ class Collection extends atoum
 
     }
 
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
+    public function testIterable($testBrand, $cars) {
+        $collection = \Car::find();
+        foreach($collection as $k => $aCar) {
+            $this -> string($aCar->idCar) -> isEqualTo($cars[$k]->idCar);
+        }
+    }
 
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
+    public function testOffsetExists($testBrand, $cars) {
+        $collection = \Car::find();
+        $this->boolean(isset($collection[1]))->isEqualTo(true);
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
+    public function testOffsetSet($testBrand, $cars) {
+        $collection = \Car::find();
+        $collection[1] = $cars[0];
+        $this->object($collection[1])->isIdenticalTo($cars[0]);
+
+        $collection = \Car::find();
+        $collection[] = $cars[0];
+        $this->object($collection[count($collection)-1])->isIdenticalTo($cars[0]);
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
+    public function testOffsetUnset($testBrand, $cars) {
+        $collection = \Car::find();
+        unset($collection[1]);
+        $this->boolean(isset($collection[1]))->isEqualTo(false);
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
+    public function testOffsetGet($testBrand, $cars) {
+        $collection = \Car::find();
+        $this->string($collection[1]->idCar)->isIdenticalTo($cars[1]->idCar);
+    }
+
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
+    public function testHas($testBrand, $cars) {
+        $collection = \Car::find();
+        $this->boolean($collection->has(1))->isEqualTo(true);
+        $this->boolean($collection->has(10))->isEqualTo(false);
+    }
 
 }

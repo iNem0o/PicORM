@@ -43,10 +43,11 @@ class PicORM
      * @var \PDO
      */
     protected static $_dataSource;
+
     /**
      * Configuration array
      *
-     * @var \PDO
+     * @var array
      */
     protected static $_configuration;
 

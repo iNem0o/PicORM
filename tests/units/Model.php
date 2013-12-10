@@ -2,6 +2,7 @@
 namespace PicORM\tests\units;
 
 use \atoum;
+use PicORM\Exception;
 
 class Model extends atoum
 {
@@ -363,4 +364,13 @@ class Model extends atoum
              ->string($relations['car']['sourceField'])->isEqualTo('idBrand')
              ->string($relations['car']['targetField'])->isEqualTo('idBrand');
     }
+
+    /**
+     * @dataProvider createAndSaveRawModelWithOneToManyRelation
+     */
+    public function testCount($testBrand, $testCars, $resultBDD)
+    {
+        $this->integer(\Car::count())->isEqualTo(3);
+    }
+
 }

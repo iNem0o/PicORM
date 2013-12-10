@@ -84,3 +84,28 @@ class Car extends \PicOrm\Model
         self::addRelationManyToMany("idCar","Tag","idTag","car_have_tag");
     }
 }
+
+class CarWithoutRelationStaticProperty extends \PicOrm\Model {
+    protected static $_tableName = 'cars';
+    protected static $_primaryKey = "idCar";
+
+    protected static $_tableFields = array(
+        'idBrand',
+        'nameCar',
+        'noteCar'
+    );
+
+    public $idCar;
+    public $idBrand;
+    public $nameCar = '';
+
+    protected static function defineRelations()
+    {
+        // create a relation between Car and Brand
+        // based on this.idBrand = Brand.idBrand
+        // nameBrand is added to autoget fields which is automatically fetched
+        // when model is loaded
+        self::addRelationOneToOne('idBrand', 'Brand', 'idBrand', 'nameBrand');
+        self::addRelationManyToMany("idCar","Tag","idTag","car_have_tag");
+    }
+}

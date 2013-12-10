@@ -111,6 +111,7 @@ abstract class Model
 
     /**
      * Can declare model relations with calling
+     * Define relations
      * ::addRelationOneToOne()
      * ::addRelationOneToMany()
      *
@@ -120,11 +121,7 @@ abstract class Model
      */
     protected static function defineRelations()
     {
-        // test if user has implemented $_relations in his model
-        // before adding relations
-        if (static::$_relations === null) {
-            throw new Exception(get_class(new static()) . '::$_tableName must be implemented');
-        }
+
     }
 
 
@@ -845,7 +842,7 @@ abstract class Model
         // fetch the count with $where parameters
         $rawSqlFetch = self::select(array("count(*) as nb"), $where);
 
-        return isset($rawSqlFetch[0]) && isset($rawSqlFetch[0]['nb']) ? $rawSqlFetch[0]['nb'] : null;
+        return isset($rawSqlFetch[0]) && isset($rawSqlFetch[0]['nb']) ? (int)$rawSqlFetch[0]['nb'] : null;
     }
 
 

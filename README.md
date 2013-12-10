@@ -6,8 +6,8 @@ PicORM is an Active Record pattern implementation easy to install and use.
 [![Total Downloads](https://poser.pugx.org/picorm/picorm/downloads.png)](https://packagist.org/packages/picorm/picorm)
 
 ### Some stuff you need to know
-- You can't have multiple primary key
-- You can't use Many To Many relations with data in relation table
+- You can't have multiple primary key yet
+- You can't use Many To Many relations with data in relation table yet
 - Fork and pull request are encouraged!
 
 ### Install

@@ -222,6 +222,8 @@ class QueryBuilder
     public function queryHint($queryHint)
     {
         $this->_queryHint[] = $queryHint;
+
+        return $this;
     }
 
 
@@ -307,10 +309,12 @@ class QueryBuilder
      *
      * @return $this
      */
-    public function resetSelect($field)
+    public function resetSelect($field = null)
     {
-        $this->_select = array($field);
-
+        $this->_select = array();
+        if ($field !== null) {
+            $this->select($field);
+        }
         return $this;
     }
 
@@ -509,10 +513,12 @@ class QueryBuilder
      *
      * @return $this
      */
-    public function resetOrderBy()
+    public function resetOrderBy($orderName=null, $orderVal = '')
     {
         $this->_orderBy = array();
-
+        if($orderName !== null) {
+            $this -> orderBy($orderName,$orderVal);
+        }
         return $this;
     }
 
@@ -555,7 +561,7 @@ class QueryBuilder
      *
      * @return $this
      */
-    public function limit($limitStart, $limitEnd = null)
+    public function limit($limitStart=null, $limitEnd = null)
     {
         if ($limitStart === null) {
             return $this;
@@ -575,10 +581,12 @@ class QueryBuilder
      *
      * @return $this
      */
-    public function resetLimit()
+    public function resetLimit($limitStart=null, $limitEnd = null)
     {
         $this->_limit = '';
-
+        if($limitStart !== null) {
+            $this -> limit($limitStart,$limitEnd);
+        }
         return $this;
     }
 
