@@ -20,7 +20,7 @@ class Collection extends atoum
 
     public static function createAndSaveRawModelWithOneToManyRelation()
     {
-//        include_once __DIR__ . '/../scripts/tested_models.php';
+
 
         $testBrand            = new \Brand();
         $testBrand->nameBrand = 'AcmeMult';

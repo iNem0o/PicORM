@@ -149,7 +149,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
      * @return $this
      * @throws Exception
      */
-    public function fetchCollection()
+    public function fetch()
     {
         $modelName = $this->_className;
 
@@ -268,7 +268,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function get($index)
     {
         if (!$this->isFetched) {
-            $this->fetchCollection();
+            $this->fetch();
         }
 
         return $this->models[$index];
@@ -287,7 +287,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
             return 0;
         }
         if (!$this->isFetched) {
-            $this->fetchCollection();
+            $this->fetch();
         }
 
         return (int)ceil($this->_paginationFoundModels / $this->_paginationNbModelByPage);
@@ -359,7 +359,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function countModelsWithoutLimit()
     {
         if (!$this->isFetched) {
-            $this->fetchCollection();
+            $this->fetch();
         }
 
         // no pagination, we have to manually count number of model
@@ -381,7 +381,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function has($index)
     {
         if (!$this->isFetched) {
-            $this->fetchCollection();
+            $this->fetch();
         }
 
         return isset($this->models[$index]);
@@ -412,7 +412,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function rewind()
     {
         if (!$this->isFetched) {
-            $this->fetchCollection();
+            $this->fetch();
         }
         $this->position = 0;
     }
@@ -470,7 +470,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function count()
     {
         if (!$this->isFetched) {
-            $this->fetchCollection();
+            $this->fetch();
         }
 
         return count($this->models);
@@ -487,7 +487,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function offsetExists($offset)
     {
         if (!$this->isFetched) {
-            $this->fetchCollection();
+            $this->fetch();
         }
 
         return isset($this->models[$offset]);
@@ -505,7 +505,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function offsetSet($offset, $value)
     {
         if (!$this->isFetched) {
-            $this->fetchCollection();
+            $this->fetch();
         }
 
         if (is_null($offset)) {
@@ -526,7 +526,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function offsetUnset($offset)
     {
         if (!$this->isFetched) {
-            $this->fetchCollection();
+            $this->fetch();
         }
 
         unset($this->models[$offset]);
@@ -543,7 +543,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function offsetGet($offset)
     {
         if (!$this->isFetched) {
-            $this->fetchCollection();
+            $this->fetch();
         }
 
         return isset($this->models[$offset]) ? $this->models[$offset] : null;

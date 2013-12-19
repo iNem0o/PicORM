@@ -194,7 +194,7 @@ Once you have a fresh \PicORM\Collection instance, data is not fetched yet. Fetc
 	foreach($collection as $model)
 	
 // or manual fetching / re-fetching
-	$collection->fetchCollection();
+	$collection->fetch();
 ```
 
 An \PicORM\Collection instance can execute UPDATE and DELETE queries on the collection members before fetching data,
