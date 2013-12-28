@@ -68,16 +68,28 @@ class QueryBuilder
 
 
     /**
-     * Marker for query type
+     * Marker for SELECT query type
      */
     const SELECT = 1;
+
+    /**
+     * Marker for DELETE query type
+     */
     const DELETE = 2;
+
+    /**
+     * Marker for UPDATE query type
+     */
     const UPDATE = 3;
+
+    /**
+     * Marker for INSERT query type
+     */
     const INSERT = 4;
 
 
     /**
-     * Define query TYPE (UPDATE|INSERT|DELETE|SELECT)
+     * Query TYPE (UPDATE|INSERT|DELETE|SELECT)
      *
      * @var
      */
@@ -157,7 +169,7 @@ class QueryBuilder
 
 
     /**
-     * Construct query string from data
+     * Build query string from setted data
      *
      * @return string
      * @throws Exception
@@ -273,7 +285,7 @@ class QueryBuilder
 
 
     /**
-     * Add a query hint modifier
+     * Add a query hint modifier (ex SQL_NO_CACHE)
      *
      * @param $queryHint
      */
@@ -302,7 +314,7 @@ class QueryBuilder
 
 
     /**
-     * Create new values for insert multiple
+     * Create new values set for multiple insert query
      *
      * @param $nameParams - field name
      * @param $val        - field value
@@ -519,7 +531,7 @@ class QueryBuilder
 
 
     /**
-     * Alias to add WHERE clause with AND
+     * Alias to add WHERE clause with AND operator
      *
      * @param $field
      * @param $comparisonOperator
@@ -568,7 +580,7 @@ class QueryBuilder
     }
 
     /**
-     * Delete the order clause from query
+     * Reset the order clause from query
      *
      * @param null   $orderName
      * @param string $orderVal
@@ -587,7 +599,7 @@ class QueryBuilder
 
 
     /**
-     * Add data to GROUP BY clause
+     * Add a GROUP BY clause to the query
      *
      * @param $groupByField
      *
@@ -602,7 +614,7 @@ class QueryBuilder
 
 
     /**
-     * Add HAVING clause
+     * Add a HAVING clause to the query
      *
      * @param $having
      *
@@ -659,11 +671,11 @@ class QueryBuilder
 
 
     /**
-     * Return all fields values set during building
+     * Return all fields values set during building an UPDATE query
      *
      * @return array
      */
-    public function getParams()
+    public function getUpdateValues()
     {
         return $this->_setVal;
     }
