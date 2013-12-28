@@ -6,12 +6,14 @@ use PicORM\Exception;
 
 class Model extends atoum
 {
+    public function beforeTestMethod($testMethod)
+    {
+        \PicORM\PicORM::getDataSource()->query(file_get_contents(__DIR__ . '/../scripts/before_tests.sql'));
+    }
+
     public function afterTestMethod($testMethod)
     {
-        \PicORM\Model::getDataSource()->query('TRUNCATE brands');
-        \PicORM\Model::getDataSource()->query('TRUNCATE cars');
-        \PicORM\Model::getDataSource()->query('TRUNCATE car_have_tag');
-        \PicORM\Model::getDataSource()->query('TRUNCATE tags');
+        \PicORM\PicORM::getDataSource()->query(file_get_contents(__DIR__ . '/../scripts/after_tests.sql'));
     }
 
     //// DATA PROVIDERS /////
@@ -143,6 +145,7 @@ class Model extends atoum
     //// END DATA PROVIDERS /////
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithManyToManyRelation
      */
     public function testManyToManyRelationCreation($car, $tags, $resultBDD)
@@ -152,6 +155,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithManyToManyRelation
      */
     public function testManyToManyRelation($car, $tags, $resultBDD)
@@ -165,6 +169,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testOneToManyRelationCreation($testBrand, $testCars, $resultBDD)
@@ -175,6 +180,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testOneToManyRelation($testBrand, $testCars, $resultBDD)
@@ -189,6 +195,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToOneRelation
      */
     public function testOneToOneRelationCreation($testBrand, $car, $dbRes)
@@ -198,6 +205,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToOneRelation
      */
     public function testOneToOneRelation($testBrand, $car, $dbRes)
@@ -212,6 +220,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelForUpdateDelete
      */
     public function testDeleteModel($testBrand)
@@ -230,6 +239,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelForUpdateDelete
      */
     public function testUpdateModel($testBrand)
@@ -249,6 +259,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModel
      */
     public function testCreateModel($testBrand, $bddResult)
@@ -281,6 +292,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModel
      */
     public function test__toJson(\Brand $testBrand, $bddResult)
@@ -290,6 +302,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModel
      */
     public function testGetModelFields(\Brand $testBrand, $bddResult)
@@ -302,6 +315,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModel
      */
     public function testGetPrimaryKeyFieldName(\Brand $testBrand, $bddResult)
@@ -313,6 +327,7 @@ class Model extends atoum
 
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithManyToManyRelation
      */
     public function testUnsetRelation($car, $tags, $resultBDD)
@@ -327,6 +342,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToOneRelation
      */
     public function testAddRelationOneToOne($testBrand, $car, $dbRes)
@@ -348,6 +364,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testAddRelationOneToMany($testBrand, $cars, $resultBDD)
@@ -366,6 +383,7 @@ class Model extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testCount($testBrand, $testCars, $resultBDD)

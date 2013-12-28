@@ -7,23 +7,20 @@ use PicORM\Model;
 
 class Collection extends atoum
 {
+    public function beforeTestMethod($testMethod)
+    {
+        \PicORM\PicORM::getDataSource()->query(file_get_contents(__DIR__ . '/../scripts/before_tests.sql'));
+    }
+
     public function afterTestMethod($testMethod)
     {
-        Model::getDataSource()->query('TRUNCATE brands');
-        Model::getDataSource()->query('TRUNCATE cars');
-        Model::getDataSource()->query('TRUNCATE car_have_tag');
-        Model::getDataSource()->query('TRUNCATE tags');
+        \PicORM\PicORM::getDataSource()->query(file_get_contents(__DIR__ . '/../scripts/after_tests.sql'));
     }
 
 
     public static function createAndSaveRawModelWithOneToManyRelation()
     {
-        Model::getDataSource()->query('TRUNCATE brands');
-        Model::getDataSource()->query('TRUNCATE cars');
-        Model::getDataSource()->query('TRUNCATE car_have_tag');
-        Model::getDataSource()->query('TRUNCATE tags');
-        
-        include_once __DIR__ . '/../scripts/tested_models.php';
+//        include_once __DIR__ . '/../scripts/tested_models.php';
 
         $testBrand            = new \Brand();
         $testBrand->nameBrand = 'AcmeMult';
@@ -52,6 +49,7 @@ class Collection extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testGetQueryHelper($testBrand, $cars)
@@ -67,13 +65,14 @@ class Collection extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testSetQueryHelper($testBrand, $cars)
     {
-        $query = new InternalQueryHelper();
+        $query      = new InternalQueryHelper();
         $collection = \Car::find();
-        $collection -> setQueryHelper($query);
+        $collection->setQueryHelper($query);
         $property = new \ReflectionProperty('\PicORM\Collection', '_queryHelper');
         $property->setAccessible(true);
 
@@ -83,6 +82,7 @@ class Collection extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testGet($testBrand, $cars)
@@ -94,11 +94,12 @@ class Collection extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testDeleteCollection($testBrand, $cars)
     {
-        include_once __DIR__ . '/../scripts/tested_models.php';
+//        include_once __DIR__ . '/../scripts/tested_models.php';
 
         $this->integer(count($testBrand->getCar()))->isEqualTo(3);
 
@@ -108,11 +109,12 @@ class Collection extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testUpdateCollection($testBrand, $cars)
     {
-        include_once __DIR__ . '/../scripts/tested_models.php';
+//        include_once __DIR__ . '/../scripts/tested_models.php';
 
         $testBrand->getCar()->update(array('nameCar' => 'test'));
 
@@ -136,9 +138,11 @@ class Collection extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
-    public function testCountModelsWithoutLimit($testBrand, $cars) {
+    public function testCountModelsWithoutLimit($testBrand, $cars)
+    {
         $collection = \Car::find();
         $collection->activePagination(10);
         $collection->paginate(1);
@@ -152,6 +156,7 @@ class Collection extends atoum
 
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
     public function testPagination($testBrand, $cars)
@@ -161,7 +166,7 @@ class Collection extends atoum
         self::createAndSaveRawModelWithOneToManyRelation();
         self::createAndSaveRawModelWithOneToManyRelation();
         self::createAndSaveRawModelWithOneToManyRelation();
-        include_once __DIR__ . '/../scripts/tested_models.php';
+//        include_once __DIR__ . '/../scripts/tested_models.php';
 
         $collection = \Car::find();
         $collection->activePagination(5);
@@ -176,7 +181,7 @@ class Collection extends atoum
         $this->boolean($collection->has(999999))->isEqualTo(false);
         $this->string($collection->get(0)->idCar)->isEqualTo($cars[0]->idCar);
 
-        $collection->set(5,$cars[0]);
+        $collection->set(5, $cars[0]);
         $this->string($collection[5]->idCar)->isEqualTo($cars[0]->idCar);
 
 
@@ -188,57 +193,69 @@ class Collection extends atoum
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
-    public function testIterable($testBrand, $cars) {
+    public function testIterable($testBrand, $cars)
+    {
         $collection = \Car::find();
-        foreach($collection as $k => $aCar) {
-            $this -> string($aCar->idCar) -> isEqualTo($cars[$k]->idCar);
+        foreach ($collection as $k => $aCar) {
+            $this->string($aCar->idCar)->isEqualTo($cars[$k]->idCar);
         }
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
-    public function testOffsetExists($testBrand, $cars) {
+    public function testOffsetExists($testBrand, $cars)
+    {
         $collection = \Car::find();
         $this->boolean(isset($collection[1]))->isEqualTo(true);
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
-    public function testOffsetSet($testBrand, $cars) {
-        $collection = \Car::find();
+    public function testOffsetSet($testBrand, $cars)
+    {
+        $collection    = \Car::find();
         $collection[1] = $cars[0];
         $this->object($collection[1])->isIdenticalTo($cars[0]);
 
-        $collection = \Car::find();
+        $collection   = \Car::find();
         $collection[] = $cars[0];
-        $this->object($collection[count($collection)-1])->isIdenticalTo($cars[0]);
+        $this->object($collection[count($collection) - 1])->isIdenticalTo($cars[0]);
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
-    public function testOffsetUnset($testBrand, $cars) {
+    public function testOffsetUnset($testBrand, $cars)
+    {
         $collection = \Car::find();
         unset($collection[1]);
         $this->boolean(isset($collection[1]))->isEqualTo(false);
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
-    public function testOffsetGet($testBrand, $cars) {
+    public function testOffsetGet($testBrand, $cars)
+    {
         $collection = \Car::find();
         $this->string($collection[1]->idCar)->isIdenticalTo($cars[1]->idCar);
     }
 
     /**
+     * @engine isolate
      * @dataProvider createAndSaveRawModelWithOneToManyRelation
      */
-    public function testHas($testBrand, $cars) {
+    public function testHas($testBrand, $cars)
+    {
         $collection = \Car::find();
         $this->boolean($collection->has(1))->isEqualTo(true);
         $this->boolean($collection->has(10))->isEqualTo(false);
