@@ -86,4 +86,12 @@ class PicORM
         // store PicORM configuration
         static::$_configuration = $configuration;
     }
+
+    /**
+     * Return main datasource extracted from configuration
+     * @return \PDO
+     */
+    public static function getDataSource() {
+        return static::$_dataSource;
+    }
 }
