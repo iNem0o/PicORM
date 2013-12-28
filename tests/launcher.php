@@ -4,6 +4,7 @@
     $unitsFolderPath = __DIR__.'/units';
 
     if(!file_exists($atoumPath)) {
+        chdir(__DIR__);
         print `curl -s https://raw.github.com/atoum/atoum-installer/master/installer | php -- --phar`;
     }
 
