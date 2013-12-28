@@ -83,18 +83,76 @@ class QueryBuilder
      */
     protected $_queryType;
 
-
-    protected $_select = array();
-    protected $_insert = '';
-    protected $_update = '';
-    protected $_delete = '';
+    /**
+     * Query hint (ex : SQL_NO_CACHE)
+     * @var array
+     */
     protected $_queryHint = array();
+
+    /**
+     * Fields to select
+     * @var array
+     */
+    protected $_select = array();
+
+    /**
+     * Table name to insert
+     * @var string
+     */
+    protected $_insert = '';
+
+    /**
+     * Table name to update
+     * @var string
+     */
+    protected $_update = '';
+
+    /**
+     * Table name to delete from
+     * @var string
+     */
+    protected $_delete = '';
+
+    /**
+     * Tables to select from
+     * @var string
+     */
     protected $_from = '';
+
+    /**
+     * Join definition
+     * @var array
+     */
     protected $_join = array();
+
+    /**
+     * Where criteria
+     * @var array
+     */
     protected $_where = array();
+
+    /**
+     * Order by criteria
+     * @var array
+     */
     protected $_orderBy = array();
+
+    /**
+     * Group by criteria
+     * @var array
+     */
     protected $_groupBy = array();
+
+    /**
+     * Having criteria
+     * @var string
+     */
     protected $_having = '';
+
+    /**
+     * Limit criteria
+     * @var string
+     */
     protected $_limit = '';
 
 
@@ -315,6 +373,7 @@ class QueryBuilder
         if ($field !== null) {
             $this->select($field);
         }
+
         return $this;
     }
 
@@ -511,14 +570,18 @@ class QueryBuilder
     /**
      * Delete the order clause from query
      *
+     * @param null   $orderName
+     * @param string $orderVal
+     *
      * @return $this
      */
-    public function resetOrderBy($orderName=null, $orderVal = '')
+    public function resetOrderBy($orderName = null, $orderVal = '')
     {
         $this->_orderBy = array();
-        if($orderName !== null) {
-            $this -> orderBy($orderName,$orderVal);
+        if ($orderName !== null) {
+            $this->orderBy($orderName, $orderVal);
         }
+
         return $this;
     }
 
@@ -561,7 +624,7 @@ class QueryBuilder
      *
      * @return $this
      */
-    public function limit($limitStart=null, $limitEnd = null)
+    public function limit($limitStart = null, $limitEnd = null)
     {
         if ($limitStart === null) {
             return $this;
@@ -579,14 +642,18 @@ class QueryBuilder
     /**
      * Delete the limit clause from query
      *
+     * @param null $limitStart
+     * @param null $limitEnd
+     *
      * @return $this
      */
-    public function resetLimit($limitStart=null, $limitEnd = null)
+    public function resetLimit($limitStart = null, $limitEnd = null)
     {
         $this->_limit = '';
-        if($limitStart !== null) {
-            $this -> limit($limitStart,$limitEnd);
+        if ($limitStart !== null) {
+            $this->limit($limitStart, $limitEnd);
         }
+
         return $this;
     }
 

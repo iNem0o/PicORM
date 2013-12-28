@@ -91,7 +91,8 @@ class PicORM
      * Return main datasource extracted from configuration
      * @return \PDO
      */
-    public static function getDataSource() {
+    public static function getDataSource()
+    {
         return static::$_dataSource;
     }
 }

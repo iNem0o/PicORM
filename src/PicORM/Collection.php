@@ -343,7 +343,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         $countQueryHelper->resetSelect("count(*)");
         $countQueryHelper->resetOrderBy();
         $countQueryHelper->resetLimit();
-        $query = $this -> _dataSource -> prepare($countQueryHelper->buildQuery());
+        $query = $this->_dataSource->prepare($countQueryHelper->buildQuery());
         $query->execute($countQueryHelper->getWhereParamsValues());
 
         return (int)$query->fetch(\PDO::FETCH_COLUMN);

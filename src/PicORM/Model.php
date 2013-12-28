@@ -528,7 +528,7 @@ abstract class Model
                         ->from($classRelation::formatTableNameMySQL(), 't')
                         ->innerJoin(
                         $configRelation['relationTable'],
-                            $configRelation['relationTable'] . "." . $configRelation['targetField'] . " = t." . $configRelation['targetField']
+                        $configRelation['relationTable'] . "." . $configRelation['targetField'] . " = t." . $configRelation['targetField']
                         );
 
                     // check one to one relation with auto get fields
@@ -548,11 +548,11 @@ abstract class Model
 
                             // add query join corresponding to the relation
                             $relationFieldName = 'rel' . $nbRelation . '.`' . $uneRelation['targetField'];
-                            $relationField = $classRelation::formatTableNameMySQL() . '.`' . $uneRelation['sourceField'] . '`';
+                            $relationField     = $classRelation::formatTableNameMySQL() . '.`' . $uneRelation['sourceField'] . '`';
                             $selectRelations
                                 ->leftJoin(
-                                    $uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
-                                    $relationFieldName. '` = ' .$relationField
+                                $uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
+                                $relationFieldName . '` = ' . $relationField
                                 );
 
                             // increment relation count used in prefix
@@ -615,7 +615,8 @@ abstract class Model
         $targetField,
         $autoGetFields = array(),
         $aliasRelation = ''
-    ) {
+    )
+    {
         if (!is_string($sourceField)) {
             throw new Exception('$sourceField have to be a string');
         }
@@ -712,7 +713,8 @@ abstract class Model
         $targetField,
         $relationTable,
         $aliasRelation = ''
-    ) {
+    )
+    {
         // test is related class is a PicORM model
         if (!class_exists($classRelation) || !new $classRelation() instanceof Model) {
             throw new Exception("Class " . $classRelation . " doesn't exists or is not subclass of PicORM\Model");
@@ -866,7 +868,8 @@ abstract class Model
         $order = array(),
         $limitStart = null,
         $limitEnd = null
-    ) {
+    )
+    {
         // get the formatted model mysql table name with database name
         $modelTableName = static::formatTableNameMySQL();
 
@@ -904,7 +907,7 @@ abstract class Model
                 // add query join corresponding to the relation
                 $helper->leftJoin(
                        $uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
-                           'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $modelTableName . '.`' . $uneRelation['sourceField'] . '`'
+                       'rel' . $nbRelation . '.`' . $uneRelation['targetField'] . '` = ' . $modelTableName . '.`' . $uneRelation['sourceField'] . '`'
                 );
 
                 // increment relation count used in prefix
@@ -952,7 +955,8 @@ abstract class Model
         $limitStart = null,
         $limitEnd = null,
         $pdoFetchMode = null
-    ) {
+    )
+    {
         // validate model PHP structure if necessary
         static::_validateModel();
 
@@ -1207,6 +1211,8 @@ abstract class Model
 
     /**
      * Set PDO instance
+     *
+     * @param $_dataSource
      */
     public static function setDataSource($_dataSource)
     {
