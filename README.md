@@ -47,7 +47,7 @@ Before using ``PicORM`` you have to configure it.
 
 ## Model
 **Implements a Model**<br>
-First you have to create a table, which your entity will be mapped to
+First you have to create a table, which your model will be mapped to
 
 
 ```sql
@@ -122,24 +122,24 @@ and then, add one public property by table field with ``public $fieldName``
 ```
 
 ## find() and findOne()
-Every subclass of ``Entity`` inherit of static methods ``find()`` and ``findOne()``.<br>
+Every subclass of ``Model`` inherit of static methods ``find()`` and ``findOne()``.<br>
 Theses methods are used to hydrate models from database rows.
 
 ```php
 /**
- * Find one entity from criteria, allowing to order
+ * Find one model from criteria, allowing to order
  * @param array $where - associative
  * @param array $order - associative array
  */
 public static function findOne($where = array(), $order = array())
 
 /**
- * Return EntityCollection instance from criteria, allowing to order and limit result
+ * Return Collection instance from criteria, allowing to order and limit result
  * @param array $where - associative array
  * @param array $order - associative array
  * @param int $limitStart - int
  * @param int $limitEnd - int
- * @return EntityCollection
+ * @return Collection
  */
 public static function find($where = array(),$order = array(), $limitStart = null, $limitEnd = null)
 ```
@@ -248,7 +248,7 @@ Using relations will need you to add a property and a method to your model subcl
 ``protected static $_relations = array();``  needed to be implemented to store model relations
 ``protected static function defineRelations() { }`` method to declare your relation
 
-overriding ``defineRelations()`` in your subclass allow you to declare your entity specific relations
+overriding ``defineRelations()`` in your subclass allow you to declare your model specific relations
 using one of the 3 next methods.
 
 ```php
