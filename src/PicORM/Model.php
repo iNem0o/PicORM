@@ -647,7 +647,7 @@ abstract class Model
 
         // override the relation's id if an alias is present
         if (!empty($aliasRelation)) {
-            $idRelation = $aliasRelation;
+            $idRelation = strtolower($aliasRelation);
         }
 
         // store new relation in model
@@ -683,7 +683,7 @@ abstract class Model
 
         // override the relation's id if an alias is present
         if (!empty($aliasRelation)) {
-            $idRelation = $aliasRelation;
+            $idRelation = strtolower($aliasRelation);
         }
 
         // store new relation in model
@@ -725,7 +725,7 @@ abstract class Model
 
         // override the relation's id if an alias is present
         if (!empty($aliasRelation)) {
-            $idRelation = $aliasRelation;
+            $idRelation = strtolower($aliasRelation);
         }
 
         // store new relation in model
