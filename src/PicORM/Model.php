@@ -530,7 +530,14 @@ abstract class Model
                         $configRelation['relationTable'],
                         $configRelation['relationTable'] . "." . $configRelation['targetField'] . " = t." . $configRelation['targetField']
                         );
+                    if($order !== null) {
+                        foreach ($order as $orderField => $orderVal) {
+                            $selectRelations->orderBy($orderField, $orderVal);
+                        }
+                    }
+                    $selectRelations -> limit($limitStart, $limitEnd);
 
+                    $selectRelations->buildWhereFromArray($where);
                     // check one to one relation with auto get fields
                     // and append needed fields to select
                     $nbRelation = 0;
