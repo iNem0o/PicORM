@@ -479,10 +479,10 @@ abstract class Model
         }
 
         // extract limit from args
-        if (isset($callArgs[2]) && is_array($callArgs[2])) {
+        if (isset($callArgs[2]) && is_numeric($callArgs[2])) {
             $limitStart = $callArgs[2];
         }
-        if (isset($callArgs[3]) && is_array($callArgs[3])) {
+        if (isset($callArgs[3]) && is_numeric($callArgs[3])) {
             $limitEnd = $callArgs[3];
         }
 
