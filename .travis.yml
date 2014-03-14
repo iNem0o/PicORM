@@ -1,0 +1,17 @@
+language: php
+php:
+  - 5.4
+  - 5.5
+
+before_script:
+  - "mysql -e 'create database testspicorm;'"
+  - "cp ./tests/config.inc.sample.php ./tests/config.inc.php"
+
+script:
+  - php ./tests/launcher.php
+
+mysql:
+  adapter: mysql2
+  database: testspicorm
+  username: travis
+  encoding: utf8

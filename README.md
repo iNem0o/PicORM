@@ -2,7 +2,13 @@
 PicORM will help you to map your MySQL database rows into PHP object and create relations between them.<br>
 PicORM is an Active Record pattern implementation easy to install and use.
 
-*Currently in beta version 0.0.4*
+[![Latest Stable Version](https://poser.pugx.org/picorm/picorm/version.png)](https://packagist.org/packages/picorm/picorm)
+[![Total Downloads](https://poser.pugx.org/picorm/picorm/downloads.png)](https://packagist.org/packages/picorm/picorm)
+
+### Some stuff you need to know
+- You can't have multiple primary key yet
+- You can't use Many To Many relations with data in relation table yet
+- Fork and pull request are encouraged!
 
 ### Install
 **From composer**<br>
@@ -14,7 +20,7 @@ Create a ``composer.json`` file with
 ```json
 {
     "require": {
-        "picorm/picorm": "0.0.3"
+        "picorm/picorm": "0.0.5"
     }
 }
 ```
@@ -41,7 +47,7 @@ Before using ``PicORM`` you have to configure it.
 
 ## Model
 **Implements a Model**<br>
-First you have to create a table, which your entity will be mapped to
+First you have to create a table, which your model will be mapped to
 
 
 ```sql
@@ -116,24 +122,24 @@ and then, add one public property by table field with ``public $fieldName``
 ```
 
 ## find() and findOne()
-Every subclass of ``Entity`` inherit of static methods ``find()`` and ``findOne()``.<br>
-Theses methods are used to create models from database rows.
+Every subclass of ``Model`` inherit of static methods ``find()`` and ``findOne()``.<br>
+Theses methods are used to hydrate models from database rows.
 
 ```php
 /**
- * Find one entity from criteria, allowing to order
+ * Find one model from criteria, allowing to order
  * @param array $where - associative
  * @param array $order - associative array
  */
 public static function findOne($where = array(), $order = array())
 
 /**
- * Return EntityCollection instance from criteria, allowing to order and limit result
+ * Return Collection instance from criteria, allowing to order and limit result
  * @param array $where - associative array
  * @param array $order - associative array
  * @param int $limitStart - int
  * @param int $limitEnd - int
- * @return EntityCollection
+ * @return Collection
  */
 public static function find($where = array(),$order = array(), $limitStart = null, $limitEnd = null)
 ```
@@ -173,6 +179,7 @@ This parameter is data for building an ORDER mysql clause
 Collections in PicORM are created by ``::find()`` method, accessible statically on each ``\PicORM\Model`` subclass.<br>
 Once you have a fresh \PicORM\Collection instance, data is not fetched yet. Fetching is done only when you try to access data using one of these ways
 
+### Collections usage
 ```php
 // php array access
 	$firstResult = $collection[0];
@@ -187,7 +194,7 @@ Once you have a fresh \PicORM\Collection instance, data is not fetched yet. Fetc
 	foreach($collection as $model)
 	
 // or manual fetching / re-fetching
-	$collection->fetchCollection();
+	$collection->fetch();
 ```
 
 An \PicORM\Collection instance can execute UPDATE and DELETE queries on the collection members before fetching data,
@@ -203,13 +210,45 @@ this way using ``update()`` or ``delete()`` method produce only one MySQL query 
                          -> update(array('noteBrand' => 5));
 						 
 ```
+### Collections pagination
+Pagination in collection is based on MySQL FOUND_ROWS().
+Remembering that collection is not fetched until you use it, when you have a Collection instance, its easy to activate pagination with
+
+```php
+$carCollection = Car::find();           // grab all car from database
+$carCollection->activePagination(50);   // asking for 50 models by page
+$carCollection->paginate(1);            // asking for first page
+```
+
+You have now access to 2 more methods.
+
+```php
+$nbTotalPages = $carCollection -> getTotalPages();
+$nbTotalModels = $carCollection -> foundModels();
+```
+
+### Collection advanced query
+You are able to alter the fetch query before it execution using the ```getQueryHelper()``` method on the collection.
+You will get an instance of ```InternalQueryHelper``` which you can manipulate. Once you are done, just set
+the collection query helper with ```setQueryHelper($helper)```
+
+That way you can load custom data inside a model instance.
+
+```php
+$cars  = Car::find();
+$queryBuilder = $cars->getQueryHelper();
+$queryBuilder->select("COUNT(idTag) as nbTags");
+$queryBuilder->leftJoin('car_has_tag cht', 'cht.idCar = cars.idCar');
+$queryBuilder->groupBy("cars.idCar");
+$cars->setQueryHelper($queryBuilder);
+```
 
 ## Relations between models
 Using relations will need you to add a property and a method to your model subclass.<br>
 ``protected static $_relations = array();``  needed to be implemented to store model relations
 ``protected static function defineRelations() { }`` method to declare your relation
 
-overriding ``defineRelations()`` in your subclass allow you to declare your entity specific relations
+overriding ``defineRelations()`` in your subclass allow you to declare your model specific relations
 using one of the 3 next methods.
 
 ```php
@@ -447,3 +486,5 @@ Changelog
 - Collection pagination
 - Tests
 
+#### BETA 0.0.5
+- Customize collection query builder
