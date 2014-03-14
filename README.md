@@ -488,3 +488,11 @@ Changelog
 
 #### BETA 0.0.5
 - Customize collection query builder
+- Moving from SQL_CALC_FOUND_ROWS to count(*) 
+- Fix bug with relation alias name and caps
+- Fix bug in relation getter with LIMIT clause
+- Fix bug with no where / order / limit in many to many getter
+- Refactoring Code
+- Refactoring PHPDoc
+- Refactoring Tests
+- Adding TravisCI 
