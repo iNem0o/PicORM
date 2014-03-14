@@ -20,7 +20,7 @@ Create a ``composer.json`` file with
 ```json
 {
     "require": {
-        "picorm/picorm": "0.0.3"
+        "picorm/picorm": "0.0.5"
     }
 }
 ```
