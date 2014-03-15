@@ -749,15 +749,15 @@ abstract class Model
     /**
      * Return model array fetched from database with custom mysql query
      *
-     * @param $req
+     * @param $query
      * @param $params
      *
      * @return static[]
      * @todo must return Collection
      */
-    public static function findQuery($req, $params)
+    public static function findQuery($query, $params)
     {
-        $query = static::$_dataSource->prepare($req);
+        $query = static::$_dataSource->prepare($query);
         $query->execute($params);
         $fetch = $query->fetchAll(\PDO::FETCH_ASSOC);
 
