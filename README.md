@@ -2,6 +2,7 @@
 PicORM will help you to map your MySQL database rows into PHP object and create relations between them.<br>
 PicORM is an Active Record pattern implementation easy to install and use.
 
+[![Build Status](http://travis-ci.org/iNem0o/PicORM.png)](http://travis-ci.org/iNem0o/PicORM)
 [![Latest Stable Version](https://poser.pugx.org/picorm/picorm/version.png)](https://packagist.org/packages/picorm/picorm)
 [![Total Downloads](https://poser.pugx.org/picorm/picorm/downloads.png)](https://packagist.org/packages/picorm/picorm)
 
