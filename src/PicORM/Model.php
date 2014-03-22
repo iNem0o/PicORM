@@ -1091,7 +1091,7 @@ abstract class Model
 
         // build update query on model table
         $helper = new InternalQueryHelper();
-        $helper->update(static::$_tableName);
+        $helper->update(self::formatTableNameMySQL());
 
         // setting model fields value
         $params = array();
