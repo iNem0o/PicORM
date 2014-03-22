@@ -171,6 +171,13 @@ abstract class Model
         return !empty(static::$_databaseName) ? "`" . static::$_databaseName . "`." : '';
     }
 
+    /**
+     * Modify the database name on the fly
+     * @param $databaseName
+     */
+    public static function setDatabaseName($databaseName) {
+        static::$_databaseName = $databaseName;
+    }
 
     /**
      * Format table name to using it in SQL query
@@ -180,6 +187,14 @@ abstract class Model
     public static function formatTableNameMySQL()
     {
         return self::formatDatabaseNameMySQL() . "`" . static::$_tableName . "`";
+    }
+
+    /**
+     * Modify the table name on the fly
+     * @param $tableName
+     */
+    public static function setTableName($tableName) {
+        static::$_tableName = $tableName;
     }
 
 
