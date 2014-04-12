@@ -552,6 +552,7 @@ abstract class Model
                     }
                     $selectRelations -> limit($limitStart, $limitEnd);
 
+                    $where = $selectRelations->prefixWhereWithTable($where,'t');
                     $selectRelations->buildWhereFromArray($where);
                     // check one to one relation with auto get fields
                     // and append needed fields to select
