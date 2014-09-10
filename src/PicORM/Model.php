@@ -555,7 +555,7 @@ abstract class Model
 
                             // add query join corresponding to the relation
                             $relationFieldName = 'rel' . $nbRelation . '.`' . $uneRelation['targetField'];
-                            $relationField     = $classRelation::formatTableNameMySQL() . '.`' . $uneRelation['sourceField'] . '`';
+                            $relationField     = 't' . '.`' . $uneRelation['sourceField'] . '`';
                             $selectRelations
                                 ->leftJoin(
                                 $uneRelation['classRelation']::formatTableNameMySQL() . ' rel' . $nbRelation,
