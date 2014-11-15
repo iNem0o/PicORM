@@ -274,6 +274,16 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
         return $this->models[$index];
 
     }
+    
+    /**
+    * Return all models inside the collection
+    *
+    * @return array
+    */
+    public function getModels()
+    {
+        return $this->models;
+    }
 
 
     /**
