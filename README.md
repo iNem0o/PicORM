@@ -23,7 +23,7 @@ Create a ``composer.json`` file with
 ```json
 {
     "require": {
-        "picorm/picorm": "0.0.5"
+        "picorm/picorm": "0.0.6"
     }
 }
 ```
@@ -491,3 +491,9 @@ Changelog
 
 #### BETA 0.0.5
 - Customize collection query builder
+
+#### BETA 0.0.6
+- Adding setter for database and table
+- Bugfix:update query doesnt use tablename getter
+- Bugfix : where value was not prefixed with table name in many to many getter
+- Update readme
