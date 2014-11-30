@@ -171,6 +171,13 @@ abstract class Model
         return !empty(static::$_databaseName) ? "`" . static::$_databaseName . "`." : '';
     }
 
+    /**
+     * Modify the database name on the fly
+     * @param $databaseName
+     */
+    public static function setDatabaseName($databaseName) {
+        static::$_databaseName = $databaseName;
+    }
 
     /**
      * Format table name to using it in SQL query
@@ -180,6 +187,14 @@ abstract class Model
     public static function formatTableNameMySQL()
     {
         return self::formatDatabaseNameMySQL() . "`" . static::$_tableName . "`";
+    }
+
+    /**
+     * Modify the table name on the fly
+     * @param $tableName
+     */
+    public static function setTableName($tableName) {
+        static::$_tableName = $tableName;
     }
 
 
@@ -537,6 +552,7 @@ abstract class Model
                     }
                     $selectRelations -> limit($limitStart, $limitEnd);
 
+                    $where = $selectRelations->prefixWhereWithTable($where,'t');
                     $selectRelations->buildWhereFromArray($where);
                     // check one to one relation with auto get fields
                     // and append needed fields to select
@@ -749,15 +765,15 @@ abstract class Model
     /**
      * Return model array fetched from database with custom mysql query
      *
-     * @param $req
+     * @param $query
      * @param $params
      *
      * @return static[]
      * @todo must return Collection
      */
-    public static function findQuery($req, $params)
+    public static function findQuery($query, $params)
     {
-        $query = static::$_dataSource->prepare($req);
+        $query = static::$_dataSource->prepare($query);
         $query->execute($params);
         $fetch = $query->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -1076,7 +1092,7 @@ abstract class Model
 
         // build update query on model table
         $helper = new InternalQueryHelper();
-        $helper->update(static::$_tableName);
+        $helper->update(self::formatTableNameMySQL());
 
         // setting model fields value
         $params = array();

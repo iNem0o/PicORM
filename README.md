@@ -1,7 +1,10 @@
-# PicORM a lightweight PHP ORM.
+![PicORM](/examples/picorm.png?raw=true "PicORM")
+
+# a lightweight PHP ORM.
 PicORM will help you to map your MySQL database rows into PHP object and create relations between them.<br>
 PicORM is an Active Record pattern implementation easy to install and use.
 
+[![Build Status](http://travis-ci.org/iNem0o/PicORM.png)](http://travis-ci.org/iNem0o/PicORM)
 [![Latest Stable Version](https://poser.pugx.org/picorm/picorm/version.png)](https://packagist.org/packages/picorm/picorm)
 [![Total Downloads](https://poser.pugx.org/picorm/picorm/downloads.png)](https://packagist.org/packages/picorm/picorm)
 
@@ -20,7 +23,7 @@ Create a ``composer.json`` file with
 ```json
 {
     "require": {
-        "picorm/picorm": "0.0.5"
+        "picorm/picorm": "0.0.6"
     }
 }
 ```
@@ -496,3 +499,10 @@ Changelog
 - Refactoring PHPDoc
 - Refactoring Tests
 - Adding TravisCI 
+
+#### BETA 0.0.6
+- Adding setter for database and table
+- Bugfix:update query doesnt use tablename getter
+- Bugfix : where value was not prefixed with table name in many to many getter
+- Update readme
+

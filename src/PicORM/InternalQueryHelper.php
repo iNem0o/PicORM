@@ -60,7 +60,6 @@ class InternalQueryHelper extends QueryBuilder
             return $data;
         }
 
-        $tableName = trim($tableName, '`');
         foreach ($data as $key => $v) {
             $newKey        = $tableName . '.' . trim($key, '`');
             $data[$newKey] = $v;
