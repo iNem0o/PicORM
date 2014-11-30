@@ -1,3 +1,5 @@
+![PicORM](/examples/picorm.png?raw=true "PicORM")
+
 # PicORM a lightweight PHP ORM.
 PicORM will help you to map your MySQL database rows into PHP object and create relations between them.<br>
 PicORM is an Active Record pattern implementation easy to install and use.
