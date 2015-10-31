@@ -85,7 +85,6 @@ class InternalQueryHelper extends QueryBuilder
             return $data;
         }
 
-        $tableName = trim($tableName, '`');
         foreach ($data as $key => $v) {
             // if $v is empty, we have a custom order like RAND() and do not have to prefix
             if (!empty($v)) {
