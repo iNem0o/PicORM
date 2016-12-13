@@ -149,7 +149,9 @@ abstract class Model
             if (static::$_tableFields === null) {
                 throw new Exception($subClassName . '::$_tableFields must be implemented');
             }
-
+            if(in_array(self::$_primaryKey,self::$_tableFields)) {
+                throw new Exception($subClassName . '::$_tableFields must not contain $_primaryKey');
+            }
             // if user has implemented $_relations for this model, call the defineRelations() method
             if (static::$_relations !== null) {
                 static::defineRelations();
