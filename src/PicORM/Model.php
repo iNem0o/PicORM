@@ -63,7 +63,7 @@ abstract class Model
      *
      * @var array
      */
-    protected static $_relations = null;
+    protected static $_relations = array();
 
     /**
      * SQL fields from table without primary key
