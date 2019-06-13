@@ -165,6 +165,10 @@ this parameter is data for building a WHERE mysql clause
 					'field'    => array('IN (5,6,4)'),
 					'dateTime' => array('NOW()')
 					);
+// null values (custom operator + raw value)
+	$where = ['text' => ['operator' => 'IS', 'value' => ['NULL']]];
+	$where = ['text' => ['operator' => 'IS NOT', 'value' => ['NULL']]];
+
 ```
 
 **How to use $order parameter**<br>
